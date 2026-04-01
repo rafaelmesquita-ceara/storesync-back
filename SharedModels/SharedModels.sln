@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedModels", "SharedModels\SharedModels.csproj", "{5C0E646E-1954-F81D-0B6F-88EFC34B80A4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5C0E646E-1954-F81D-0B6F-88EFC34B80A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C0E646E-1954-F81D-0B6F-88EFC34B80A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C0E646E-1954-F81D-0B6F-88EFC34B80A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C0E646E-1954-F81D-0B6F-88EFC34B80A4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E4EF3943-7FD7-49C3-9892-E3573C66E96E}
+	EndGlobalSection
+EndGlobal

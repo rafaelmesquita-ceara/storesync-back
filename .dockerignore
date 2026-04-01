@@ -1,0 +1,14 @@
+**/bin
+**/obj
+**/out
+**/.git
+**/.gitignore
+**/.vscode
+**/.idea
+**/*.user
+**/*.suo
+**/Dockerfile*
+**/docker-compose*
+**/README.md
+**/CLAUDE.md
+**/Planejamento

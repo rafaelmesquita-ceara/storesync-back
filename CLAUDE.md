@@ -148,3 +148,52 @@ user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
 - Controllers return password-masked responses (setting `Password = null` before returning)
 - The `"user"` table name requires double quotes in PostgreSQL queries due to being a reserved keyword
 - Para qualquer alteração solicitada na qual seja solicitado um commit e push, a mensagem do comit deve ser um resumo bem objetivo do que foi feito.
+
+## Database Migrations
+
+The project uses a custom migration system that automatically applies pending SQL scripts on application startup.
+
+### How It Works
+
+1. **Startup Process**: When the API starts, `MigrationService.ApplyMigrationsAsync()` is called automatically
+2. **Version Tracking**: Applied migrations are tracked in the `historico_versao` table
+3. **Automatic Execution**: Only migrations with version numbers greater than the last applied migration are executed
+4. **Transaction Safety**: Each migration runs within a transaction - if it fails, it rolls back
+
+### Migration Files
+
+Location: `StoreSyncBack/Migrations/`
+
+Naming convention: `{version}_{description}.sql`
+
+Examples:
+- `000_initial_schema.sql` - Creates all database tables
+- `001_seed_root_user.sql` - Inserts default admin user
+
+### Adding a New Migration
+
+1. Create a new SQL file in `StoreSyncBack/Migrations/` following the naming pattern
+2. Use sequential version numbers (002, 003, etc.)
+3. Write idempotent SQL using `IF NOT EXISTS` where possible
+4. Restart the application - migrations are applied automatically
+
+Example:
+```sql
+-- 002_add_product_description.sql
+ALTER TABLE product ADD COLUMN IF NOT EXISTS description TEXT;
+```
+
+### Migration History Table
+
+```sql
+CREATE TABLE historico_versao (
+    id SERIAL PRIMARY KEY,
+    numero_release VARCHAR(20) NOT NULL UNIQUE,
+    data_atualizacao TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+Query to check applied migrations:
+```sql
+SELECT * FROM historico_versao ORDER BY numero_release;
+```

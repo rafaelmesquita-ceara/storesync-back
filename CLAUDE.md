@@ -197,3 +197,93 @@ Query to check applied migrations:
 ```sql
 SELECT * FROM historico_versao ORDER BY numero_release;
 ```
+
+## Test-Driven Development (TDD)
+
+Este projeto segue o padrão **TDD (Test-Driven Development)**. Toda nova funcionalidade ou alteração deve seguir o ciclo:
+
+```
+Vermelho → Verde → Refatorar
+```
+
+### Ciclo TDD
+
+1. **Vermelho**: Escrever o teste ANTES da implementação (o teste deve falhar)
+2. **Verde**: Implementar o mínimo necessário para o teste passar
+3. **Refatorar**: Melhorar o código mantendo todos os testes verdes
+
+### Regras Obrigatórias
+
+- ✅ Todo código de produção deve ter teste unitário correspondente
+- ✅ Testes devem ser escritos ANTES da implementação
+- ✅ Executar `dotnet test` antes de cada commit
+- ✅ Cobertura mínima: 80% dos services
+- ✅ Usar xUnit + Moq + FluentAssertions
+
+### Executando Testes
+
+```bash
+# Executar todos os testes
+dotnet test StoreSyncBack.Tests/StoreSyncBack.Tests.csproj
+
+# Executar com detalhes
+dotnet test StoreSyncBack.Tests/StoreSyncBack.Tests.csproj --logger "console;verbosity=detailed"
+
+# Executar testes específicos
+dotnet test --filter "FullyQualifiedName~UserServiceTests"
+
+# Executar em modo watch (desenvolvimento)
+dotnet watch test --project StoreSyncBack.Tests/StoreSyncBack.Tests.csproj
+```
+
+### Estrutura de Testes
+
+- **Local**: `StoreSyncBack.Tests/Unit/Services/`
+- **Padrão de nomenclatura**: `[Metodo]_[Estado]_[ResultadoEsperado]`
+- Um arquivo de teste por service
+- Usar `TestData` fixture para dados fake
+- Mockar repositórios com Moq
+
+### Exemplo de Teste
+
+```csharp
+[Fact]
+public async Task CreateCategoryAsync_NomeValido_RetornaIdCriado()
+{
+    // Arrange
+    var category = TestData.CreateCategory("Eletrônicos");
+    _repoMock.Setup(r => r.CreateCategoryAsync(It.IsAny<Category>()))
+        .ReturnsAsync(1);
+
+    // Act
+    var result = await _service.CreateCategoryAsync(category);
+
+    // Assert
+    result.Should().Be(1);
+    _repoMock.Verify(r => r.CreateCategoryAsync(
+        It.Is<Category>(c => c.Name == "Eletrônicos")), Times.Once);
+}
+```
+
+### Fluxo de Trabalho
+
+Ao implementar uma nova funcionalidade:
+
+1. Criar branch para a feature
+2. Escrever testes que definem o comportamento esperado
+3. Executar testes e confirmar que falham (vermelho)
+4. Implementar a funcionalidade mínima
+5. Executar testes e confirmar que passam (verde)
+6. Refatorar se necessário
+7. Commit com mensagem objetiva
+8. Push e merge
+
+### Dados de Teste
+
+Usar a classe `TestData` em `StoreSyncBack.Tests/Fixtures/`:
+
+```csharp
+var category = TestData.CreateCategory("Nome");
+var user = TestData.CreateUser("login", "senha");
+var products = TestData.CreateProducts(5);
+```

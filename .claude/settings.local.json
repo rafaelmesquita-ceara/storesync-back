@@ -1,7 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(dotnet build:*)"
+      "Bash(dotnet build:*)",
+      "Bash(dotnet new:*)",
+      "Bash(dotnet add:*)",
+      "Bash(dotnet sln:*)",
+      "Bash(rm UnitTest1.cs)",
+      "Bash(mkdir -p Unit/Services Unit/Validators Fixtures Helpers)",
+      "Bash(dotnet test:*)"
     ]
   }
 }

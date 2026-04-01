@@ -147,3 +147,4 @@ user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
 - JWT token includes the Employee.Role claim for authorization
 - Controllers return password-masked responses (setting `Password = null` before returning)
 - The `"user"` table name requires double quotes in PostgreSQL queries due to being a reserved keyword
+- Para qualquer alteração solicitada na qual seja solicitado um commit e push, a mensagem do comit deve ser um resumo bem objetivo do que foi feito.

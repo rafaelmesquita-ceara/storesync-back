@@ -2,6 +2,20 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Documentação por Módulo
+
+Antes de implementar ou alterar qualquer coisa em um módulo, leia o arquivo de documentação correspondente em `Planejamentos/Documentacao/`:
+
+| Módulo | Arquivo |
+|---|---|
+| Visão geral do sistema | `Planejamentos/Documentacao/visao-geral.md` |
+| Acesso / Autenticação | `Planejamentos/Documentacao/acesso.md` |
+| Estoque / Produtos / Categorias | `Planejamentos/Documentacao/estoque.md` |
+| Financeiro / Finanças | `Planejamentos/Documentacao/financeiro.md` |
+| Funcionários | `Planejamentos/Documentacao/funcionarios.md` |
+| Comissionamento | `Planejamentos/Documentacao/comissionamento.md` |
+| PDV / Vendas | `Planejamentos/Documentacao/pdv.md` |
+
 ## Project Overview
 
 StoreSyncBack is an ASP.NET Core 9.0 Web API for store management. It uses PostgreSQL for data storage with Dapper as the micro-ORM.

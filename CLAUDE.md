@@ -9,6 +9,7 @@ Antes de implementar ou alterar qualquer coisa em um módulo, leia o arquivo de 
 | Módulo | Arquivo |
 |---|---|
 | Visão geral do sistema | `Planejamentos/Documentacao/visao-geral.md` |
+| Retaguarda (frontend desktop) | `Planejamentos/Documentacao/retaguarda.md` |
 | Acesso / Autenticação | `Planejamentos/Documentacao/acesso.md` |
 | Estoque / Produtos / Categorias | `Planejamentos/Documentacao/estoque.md` |
 | Financeiro / Finanças | `Planejamentos/Documentacao/financeiro.md` |

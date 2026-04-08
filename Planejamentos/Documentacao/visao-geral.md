@@ -16,6 +16,7 @@ Proprietários e gestores de lojas de pequeno porte com até ~20 funcionários.
 
 | Funcionalidade | Descrição resumida | Doc |
 |---|---|---|
+| Retaguarda (desktop) | Interface desktop para cadastros e movimentações (Avalonia) | [retaguarda.md](retaguarda.md) |
 | Controle de Acesso | Login com JWT, perfis de permissão por papel | [acesso.md](acesso.md) |
 | Cadastro de Funcionários | Registro de dados, CPF, cargo e taxa de comissão | [funcionarios.md](funcionarios.md) |
 | Controle de Estoque | Produtos por categoria, quantidade e alertas de baixo estoque | [estoque.md](estoque.md) |
@@ -25,19 +26,22 @@ Proprietários e gestores de lojas de pequeno porte com até ~20 funcionários.
 
 ## Stack técnica
 
-- **Backend:** ASP.NET Core 9.0 (C#)
-- **Banco de dados:** PostgreSQL 16
-- **ORM:** Dapper (queries SQL diretas)
-- **Autenticação:** JWT Bearer
-- **Validação:** FluentValidation
-- **Testes:** xUnit + Moq + FluentAssertions
-- **Infraestrutura:** Docker + Docker Compose
+| Camada | Tecnologia |
+|---|---|
+| Frontend desktop | Avalonia UI 11 + CommunityToolkit.Mvvm |
+| Backend API | ASP.NET Core 9.0 (C#) |
+| Banco de dados | PostgreSQL 16 |
+| ORM | Dapper (queries SQL diretas) |
+| Autenticação | JWT Bearer |
+| Validação | FluentValidation |
+| Testes | xUnit + Moq + FluentAssertions |
+| Infraestrutura | Docker + Docker Compose |
 
 ## Arquitetura
 
 ```
-Client (frontend / Postman / PDV)
-        │
+StoreSyncFront (Avalonia desktop — Retaguarda)
+        │  HTTP REST + JWT
         ▼
    Controllers          ← HTTP, validação de entrada
         │
@@ -51,7 +55,7 @@ Client (frontend / Postman / PDV)
    PostgreSQL
 ```
 
-Padrão: Repository + Service Layer. Sem ORM pesado — queries SQL explícitas para performance e controle.
+Padrão: Repository + Service Layer no backend. O frontend segue MVVM com navegação por serviço.
 
 ## Convenções do projeto
 

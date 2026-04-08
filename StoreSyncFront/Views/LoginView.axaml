@@ -1,0 +1,29 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
+             x:Class="StoreSyncFront.Views.LoginView"
+             xmlns:p1="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
+             xmlns:vm="clr-namespace:StoreSyncFront.ViewModels"
+             x:DataType="vm:LoginViewModel"
+             >
+        <Grid Name="LoginGrid" ColumnDefinitions="1*, 1*" Background="#F3F3E6">
+
+            <!-- Formulário de Login -->
+            <controls:Card x:Name="StackPanelLogin" Grid.Column="0" HorizontalAlignment="Center"
+                           VerticalAlignment="Center" Background="#333333">
+                <StackPanel Margin="24">
+                    <TextBlock Text="Login" FontSize="24" FontWeight="Bold" Margin="0,0,0,20" />
+                    <TextBox UseFloatingWatermark="True" p1:TextFieldAssist.Label="Usuário" Text="{Binding Login}" />
+                    <TextBox UseFloatingWatermark="True" Classes="revealPasswordButton"
+                             p1:TextFieldAssist.Label="Senha" PasswordChar="*" Text="{Binding Senha}" />
+                    <Button Content="Entrar" Width="250" Margin="0,20,0,0" Command="{Binding EntrarCommand}" />
+                </StackPanel>
+            </controls:Card>
+
+            <!-- Imagem (some em telas pequenas) -->
+            <Image x:Name="LoginImage" Grid.Column="1" Source="avares://StoreSyncFront/Assets/logo-color.png"
+                   Stretch="UniformToFill"
+                   HorizontalAlignment="Stretch"
+                   VerticalAlignment="Stretch" />
+        </Grid>
+</UserControl>

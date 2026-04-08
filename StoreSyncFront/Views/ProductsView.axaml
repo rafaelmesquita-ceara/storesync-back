@@ -1,0 +1,234 @@
+﻿<UserControl
+    x:Class="StoreSyncFront.Views.ProductsView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:StoreSyncFront.Controls"
+    xmlns:controls1="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
+    xmlns:converters="using:StoreSyncFront.Utils"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:materialIcons="using:Material.Icons.Avalonia"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:p1="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
+    xmlns:views="using:StoreSyncFront.Views"
+    xmlns:vm="clr-namespace:StoreSyncFront.ViewModels"
+    x:Name="Root"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    x:DataType="vm:ProductsViewModel"
+    mc:Ignorable="d">
+
+    <Design.DataContext>
+        <vm:ProductsViewModel />
+    </Design.DataContext>
+    <UserControl.Resources>
+        <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+    </UserControl.Resources>
+
+    <controls1:Card Margin="16">
+        <Grid Margin="16" RowDefinitions="Auto, Auto, *">
+            <!--  Header  -->
+            <Grid
+                Margin="0,0,0,10"
+                HorizontalAlignment="Stretch"
+                ColumnDefinitions="*, *">
+
+                <!--  Título à esquerda  -->
+                <TextBlock
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Classes="Headline6"
+                    Text="Cadastro de Produto" />
+
+                <!--  Campo de busca à direita  -->
+                <TextBox
+                    x:Name="SearchTextBox"
+                    Grid.Column="1"
+                    HorizontalAlignment="Stretch"
+                    Classes="solo"
+                    KeyUp="SearchTextBox_KeyUp"
+                    Loaded="SearchTextBox_Loaded"
+                    Text="{Binding SearchBarField}"
+                    Theme="{StaticResource SoloTextBox}"
+                    Watermark="Buscar produto...">
+
+                    <TextBox.InnerRightContent>
+                        <StackPanel
+                            HorizontalAlignment="Center"
+                            Orientation="Horizontal"
+                            Spacing="5">
+                            <Button
+                                Width="{Binding $self.Bounds.Height}"
+                                Padding="4"
+                                Classes="Flat"
+                                Command="{Binding Search}">
+                                <materialIcons:MaterialIcon
+                                    Width="24"
+                                    Height="24"
+                                    Kind="Search" />
+                            </Button>
+
+                            <Button
+                                Width="{Binding $self.Bounds.Height}"
+                                Padding="4"
+                                Classes="Flat"
+                                HotKey="F5"
+                                Command="{Binding Refresh}">
+                                <materialIcons:MaterialIcon
+                                    Width="24"
+                                    Height="24"
+                                    Kind="Refresh" />
+                            </Button>
+                        </StackPanel>
+                    </TextBox.InnerRightContent>
+                </TextBox>
+
+            </Grid>
+
+            <Separator Grid.Row="1" Margin="0,0,0,10" />
+
+            <!--  Conteúdo  -->
+            <Panel Grid.Row="2">
+                <!--  Grid exibindo a lista quando não está em edição  -->
+                <Grid IsVisible="{Binding IsEdit, Converter={StaticResource InverseBooleanConverter}}">
+                    <RefreshContainer PullDirection="TopToBottom" RefreshRequested="RefreshContainerPage_RefreshRequested">
+                        <DataGrid
+                            x:Name="ProductsDataGrid"
+                            AutoGenerateColumns="False"
+                            IsReadOnly="{Binding IsEdit, Converter={StaticResource InverseBooleanConverter}}"
+                            ItemsSource="{Binding Products}"
+                            KeyDown="ProductsDataGrid_KeyUp">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn
+                                    Width="2*"
+                                    Binding="{Binding Reference}"
+                                    Header="Referência" />
+                                <DataGridTextColumn
+                                    Width="4*"
+                                    Binding="{Binding Name}"
+                                    Header="Nome" />
+                                <DataGridTextColumn
+                                    Width="*"
+                                    Binding="{Binding StockQuantity}"
+                                    Header="Estoque" />
+                                <DataGridTextColumn
+                                    Width="2*"
+                                    Binding="{Binding Price}"
+                                    Header="Preço" />
+                                <DataGridTextColumn
+                                    Width="2*"
+                                    Binding="{Binding Category.Name}"
+                                    Header="Categoria" />
+                                <DataGridTextColumn
+                                    Width="2*"
+                                    Binding="{Binding CreatedAt}"
+                                    Header="Data de Cadastro" />
+                                <DataGridTemplateColumn Header="Ações">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel
+                                                HorizontalAlignment="Center"
+                                                Orientation="Horizontal"
+                                                Spacing="5">
+                                                <controls1:FloatingButton
+                                                    Margin="3"
+                                                    Classes="Mini"
+                                                    Command="{Binding #Root.((vm:ProductsViewModel)DataContext).OpenEditCommand}"
+                                                    CommandParameter="{Binding ProductId}">
+                                                    <materialIcons:MaterialIcon
+                                                        Width="16"
+                                                        Height="16"
+                                                        Kind="Edit" />
+                                                </controls1:FloatingButton>
+                                                <controls1:FloatingButton
+                                                    Margin="3,3,15,3"
+                                                    Background="Red"
+                                                    Classes="Mini"
+                                                    Command="{Binding #Root.((vm:ProductsViewModel)DataContext).DeleteCommand}"
+                                                    CommandParameter="{Binding ProductId}">
+                                                    <materialIcons:MaterialIcon
+                                                        Width="16"
+                                                        Height="16"
+                                                        Kind="Delete" />
+                                                </controls1:FloatingButton>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </RefreshContainer>
+
+                    <controls1:FloatingButton
+                        Margin="24"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        Background="DarkGreen"
+                        Command="{Binding ToggleEditCommand}"
+                        HotKey="F1">
+                        <materialIcons:MaterialIcon Kind="Plus" />
+                    </controls1:FloatingButton>
+                </Grid>
+
+                <!--  Formulário de edição / inclusão  -->
+                <Grid IsVisible="{Binding IsEdit}">
+                    <StackPanel>
+                        <TextBox
+                            p1:TextFieldAssist.Hints="{Binding (DataValidationErrors.Errors)}"
+                            p1:TextFieldAssist.Label="Referência"
+                            Text="{Binding Reference}"
+                            UseFloatingWatermark="True" />
+                        <TextBox
+                            p1:TextFieldAssist.Hints="{Binding (DataValidationErrors.Errors)}"
+                            p1:TextFieldAssist.Label="Nome"
+                            Text="{Binding Name}"
+                            UseFloatingWatermark="True" />
+                        <TextBox
+                            p1:TextFieldAssist.Hints="{Binding (DataValidationErrors.Errors)}"
+                            p1:TextFieldAssist.Label="Estoque"
+                            Text="{Binding StockQuantity}"
+                            UseFloatingWatermark="True" />
+                        <TextBox
+                            p1:TextFieldAssist.Hints="{Binding (DataValidationErrors.Errors)}"
+                            p1:TextFieldAssist.Label="Preço"
+                            Text="{Binding Price}"
+                            UseFloatingWatermark="True" />
+
+                        <ComboBox
+                            p1:ComboBoxAssist.Label="Categoria"
+                            ItemsSource="{Binding Categories}"
+                            MaxDropDownHeight="100"
+                            SelectedIndex="0"
+                            SelectedItem="{Binding SelectedCategory}"
+                            Theme="{StaticResource MaterialOutlineComboBox}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Name}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <controls1:FloatingButton
+                        Margin="24,24,96,24"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        Background="DarkRed"
+                        Command="{Binding ClearFormCommand}"
+                        HotKey="Escape">
+                        <materialIcons:MaterialIcon Kind="Close" />
+                    </controls1:FloatingButton>
+
+                    <controls1:FloatingButton
+                        Margin="24"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        Background="DarkGreen"
+                        Command="{Binding AddProductCommand}"
+                        HotKey="Enter">
+                        <materialIcons:MaterialIcon Kind="Check" />
+                    </controls1:FloatingButton>
+                </Grid>
+            </Panel>
+        </Grid>
+    </controls1:Card>
+</UserControl>

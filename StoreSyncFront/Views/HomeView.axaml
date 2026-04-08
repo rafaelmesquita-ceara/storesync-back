@@ -1,0 +1,25 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:StoreSyncFront.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="StoreSyncFront.Views.HomeView"
+             x:DataType="vm:HomeViewModel">
+    <Grid Background="#1d1912">
+        <Image Source="avares://StoreSyncFront/Assets/storesync-high-resolution-logo-43.png" 
+               Stretch="Uniform"  MaxHeight="600"/>
+
+        <TextBlock Text="{Binding Username, StringFormat='Bem-vindo(a), {0}!'}"
+                   HorizontalAlignment="Right" 
+                   VerticalAlignment="Bottom"
+                   FontSize="28" 
+                   FontWeight="Bold"
+                   Foreground="White"
+                   Margin="0,0,30,20">
+            <TextBlock.Effect>
+                <DropShadowEffect Color="Black" BlurRadius="10" Opacity="0.7"/>
+            </TextBlock.Effect>
+        </TextBlock>
+    </Grid>
+</UserControl>

@@ -1,0 +1,48 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:StoreSyncFront.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="StoreSyncFront.Views.MainView"
+             x:DataType="vm:MainViewModel">
+    
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_Sistema">
+                <MenuItem Header="_Sair" Command="{Binding LogoutCommand}"/>
+            </MenuItem>
+            <MenuItem Header="_Cadastros">
+                <MenuItem Header="Usuários" />
+                <MenuItem Header="Produtos" Command="{Binding OpenProductsTabCommand}"/>
+            </MenuItem>
+        </Menu>
+        
+        <TabControl ItemsSource="{Binding Tabs}" 
+                    SelectedItem="{Binding SelectedTab}" 
+                    Theme="{StaticResource ScrollableTabControl}">
+            <TabControl.ItemTemplate>
+                <DataTemplate DataType="vm:TabItemViewModel">
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right"
+                                Classes="Flat"
+                                Command="{Binding CloseCommand}"
+                                IsVisible="{Binding IsClosable}"
+                                Padding="4" Margin="4,0,0,0"
+                                VerticalAlignment="Center">
+                            <materialIcons:MaterialIcon Kind="Close" Width="16" Height="16"/>
+                        </Button>
+                        <TextBlock Text="{Binding Header}" VerticalAlignment="Center"/>
+                    </DockPanel>
+                </DataTemplate>
+            </TabControl.ItemTemplate>
+            
+            <TabControl.ContentTemplate>
+                <DataTemplate DataType="vm:TabItemViewModel">
+                    <ContentControl Content="{Binding Content}"/>
+                </DataTemplate>
+            </TabControl.ContentTemplate>
+        </TabControl>
+    </DockPanel>
+</UserControl>

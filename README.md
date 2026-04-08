@@ -2,6 +2,7 @@
 
 API REST para gerenciamento de loja desenvolvida em ASP.NET Core 9.0.
 
+
 ## Tecnologias
 
 - **.NET 9.0** - Framework principal

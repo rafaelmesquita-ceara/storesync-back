@@ -49,6 +49,11 @@ namespace StoreSyncBack.Controllers
                 _logger.LogWarning(ex, "Validação CreateCategory inválida");
                 return BadRequest(ex.Message);
             }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Conflito ao criar categoria");
+                return Conflict(ex.Message);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erro ao criar categoria");
@@ -72,6 +77,11 @@ namespace StoreSyncBack.Controllers
             {
                 _logger.LogWarning(ex, "Validação UpdateCategory inválida");
                 return BadRequest(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Conflito ao atualizar categoria");
+                return Conflict(ex.Message);
             }
             catch (Exception ex)
             {

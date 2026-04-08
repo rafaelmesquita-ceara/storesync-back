@@ -155,6 +155,21 @@ namespace StoreSyncBack.Tests.Unit.Services
                 c => c.CreatedAt != default)), Times.Once);
         }
 
+        [Fact]
+        public async Task CreateCategoryAsync_NomeDuplicado_LancaInvalidOperationException()
+        {
+            // Arrange
+            var category = TestData.CreateCategory("Eletrônicos");
+            var postgresEx = new Npgsql.PostgresException("duplicate key", "ERROR", "ERROR", "23505");
+            _categoryRepoMock.Setup(r => r.CreateCategoryAsync(It.IsAny<Category>()))
+                .ThrowsAsync(postgresEx);
+
+            // Act & Assert
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _categoryService.CreateCategoryAsync(category));
+            ex.Message.Should().Contain("Eletrônicos");
+        }
+
         #endregion
 
         #region UpdateCategoryAsync
@@ -210,6 +225,21 @@ namespace StoreSyncBack.Tests.Unit.Services
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentException>(() =>
                 _categoryService.UpdateCategoryAsync(category));
+        }
+
+        [Fact]
+        public async Task UpdateCategoryAsync_NomeDuplicado_LancaInvalidOperationException()
+        {
+            // Arrange
+            var category = TestData.CreateCategory("Roupas");
+            var postgresEx = new Npgsql.PostgresException("duplicate key", "ERROR", "ERROR", "23505");
+            _categoryRepoMock.Setup(r => r.UpdateCategoryAsync(It.IsAny<Category>()))
+                .ThrowsAsync(postgresEx);
+
+            // Act & Assert
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _categoryService.UpdateCategoryAsync(category));
+            ex.Message.Should().Contain("Roupas");
         }
 
         #endregion

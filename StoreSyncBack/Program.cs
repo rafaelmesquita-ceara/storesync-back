@@ -163,5 +163,5 @@ if (!string.IsNullOrEmpty(jwtKey))
 logger.LogInformation("Application starting up - environment: {env}", app.Environment.EnvironmentName);
 
 
-app.MapControllers();
+app.MapControllers().RequireAuthorization();
 app.Run();

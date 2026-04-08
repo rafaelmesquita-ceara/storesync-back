@@ -1,3 +1,4 @@
+using Npgsql;
 using SharedModels;
 using SharedModels.Interfaces;
 using StoreSyncBack.Repositories; // só se precisar tipos concretos, senão remova
@@ -36,7 +37,14 @@ namespace StoreSyncBack.Services
             if (category.CreatedAt == default)
                 category.CreatedAt = DateTime.UtcNow;
 
-            return await _repo.CreateCategoryAsync(category);
+            try
+            {
+                return await _repo.CreateCategoryAsync(category);
+            }
+            catch (PostgresException ex) when (ex.SqlState == "23505")
+            {
+                throw new InvalidOperationException($"Já existe uma categoria com o nome '{category.Name}'.");
+            }
         }
 
         public async Task<int> UpdateCategoryAsync(Category category)
@@ -50,7 +58,14 @@ namespace StoreSyncBack.Services
             if (string.IsNullOrWhiteSpace(category.Name))
                 throw new ArgumentException("Name é obrigatório", nameof(category.Name));
 
-            return await _repo.UpdateCategoryAsync(category);
+            try
+            {
+                return await _repo.UpdateCategoryAsync(category);
+            }
+            catch (PostgresException ex) when (ex.SqlState == "23505")
+            {
+                throw new InvalidOperationException($"Já existe uma categoria com o nome '{category.Name}'.");
+            }
         }
 
         public Task<int> DeleteCategoryAsync(Guid categoryId)

@@ -265,19 +265,6 @@ public async Task CreateCategoryAsync_NomeValido_RetornaIdCriado()
 }
 ```
 
-### Fluxo de Trabalho
-
-Ao implementar uma nova funcionalidade:
-
-1. Criar branch para a feature
-2. Escrever testes que definem o comportamento esperado
-3. Executar testes e confirmar que falham (vermelho)
-4. Implementar a funcionalidade mínima
-5. Executar testes e confirmar que passam (verde)
-6. Refatorar se necessário
-7. Commit com mensagem objetiva
-8. Push e merge
-
 ### Dados de Teste
 
 Usar a classe `TestData` em `StoreSyncBack.Tests/Fixtures/`:

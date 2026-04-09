@@ -6,18 +6,53 @@ using FluentValidation;
 using SharedModels;
 using SharedModels.Interfaces;
 using StoreSyncBack.Services;
+using StoreSyncBack.Middleware;
 using Npgsql;
 using System.Security.Claims;
+using Serilog;
+using Serilog.Events;
+using Serilog.Filters;
+
+// ── Bootstrap logger (usado antes do host estar pronto) ──────────────────────
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .CreateBootstrapLogger();
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 var services = builder.Services;
 
-builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
-builder.Logging.AddDebug();
-builder.Logging.SetMinimumLevel(LogLevel.Information);
+// ── Serilog ──────────────────────────────────────────────────────────────────
+builder.Host.UseSerilog((ctx, lc) => lc
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+    .MinimumLevel.Override("System", LogEventLevel.Warning)
+    .Enrich.FromLogContext()
 
+    // Console: todos os logs
+    .WriteTo.Console(
+        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext}{NewLine}  {Message:lj}{NewLine}{Exception}")
+
+    // Arquivo de logs da aplicação (Warning+) — erros internos, avisos, startup
+    .WriteTo.File(
+        path: "logs/app-.log",
+        restrictedToMinimumLevel: LogEventLevel.Warning,
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 30,
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {SourceContext} {Message:lj}{NewLine}{Exception}")
+
+    // Arquivo de requests/responses (sub-logger filtrado por source) — todos os levels
+    .WriteTo.Logger(lc => lc
+        .Filter.ByIncludingOnly(
+            Matching.FromSource<RequestResponseLoggingMiddleware>())
+        .WriteTo.File(
+            path: "logs/requests-.log",
+            rollingInterval: RollingInterval.Day,
+            retainedFileCountLimit: 30,
+            outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}]{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}"))
+);
 
 // Bind Jwt settings
 services.Configure<JwtSettings>(configuration.GetSection("Jwt"));
@@ -50,7 +85,7 @@ services.AddScoped<System.Data.IDbConnection>(sp =>
     return new NpgsqlConnection(connStr);
 });
 
-// Validators (FluentValidation) -- se os validators estiverem em SharedModels
+// Validators (FluentValidation)
 services.AddTransient<IValidator<UserLoginDto>, UserLoginDtoValidator>();
 services.AddTransient<IValidator<UserChangePasswordDto>, UserChangePasswordDtoValidator>();
 
@@ -82,9 +117,6 @@ services.AddScoped<IUserService, StoreSyncBack.Services.UserService>();
 // Migration Service
 services.AddScoped<IMigrationService, MigrationService>();
 
- var loggerFactory = LoggerFactory.Create(config => config.AddConsole());
-var logger = loggerFactory.CreateLogger("Startup");
-    
 // JWT authentication
 var jwtSection = configuration.GetSection("Jwt");
 var jwtKey = jwtSection.GetValue<string>("Key");
@@ -111,7 +143,7 @@ if (!string.IsNullOrEmpty(jwtKey))
             ValidIssuer = jwtSection.GetValue<string>("Issuer"),
             ValidAudience = jwtSection.GetValue<string>("Audience"),
             IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
-            RoleClaimType = ClaimTypes.Role // 🔹 garante que o middleware reconheça o "role"
+            RoleClaimType = ClaimTypes.Role
         };
     });
 
@@ -119,28 +151,32 @@ if (!string.IsNullOrEmpty(jwtKey))
 }
 else
 {
-    logger.LogWarning("JWT key is not configured. Authentication will be disabled.");
+    Log.Warning("JWT key is not configured. Authentication will be disabled.");
 }
 
 var app = builder.Build();
 
-// Verifica se o banco de dados está acessível antes de iniciar a API
+// ── Verificação de banco e migrations ────────────────────────────────────────
 try
 {
     using var scope = app.Services.CreateScope();
     var dbConnection = scope.ServiceProvider.GetRequiredService<System.Data.IDbConnection>();
     dbConnection.Open();
-    logger.LogInformation("Conexão com o banco de dados estabelecida com sucesso.");
+    Log.Information("Conexão com o banco de dados estabelecida com sucesso.");
 
-    // Executa migrations automaticamente na inicialização
     var migrationService = scope.ServiceProvider.GetRequiredService<IMigrationService>();
     await migrationService.ApplyMigrationsAsync();
 }
 catch (Exception ex)
 {
-    logger.LogError(ex, "Não foi possível conectar ao banco de dados ou aplicar migrations. A API não será iniciada.");
+    Log.Fatal(ex, "Não foi possível conectar ao banco de dados ou aplicar migrations. A API não será iniciada.");
+    await Log.CloseAndFlushAsync();
     Environment.Exit(1);
 }
+
+// ── Middleware pipeline ───────────────────────────────────────────────────────
+// Logging primeiro para capturar todas as requests
+app.UseMiddleware<RequestResponseLoggingMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
@@ -160,8 +196,8 @@ if (!string.IsNullOrEmpty(jwtKey))
     app.UseAuthentication();
     app.UseAuthorization();
 }
-logger.LogInformation("Application starting up - environment: {env}", app.Environment.EnvironmentName);
 
+Log.Information("API iniciando — ambiente: {Env}", app.Environment.EnvironmentName);
 
 app.MapControllers().RequireAuthorization();
 app.Run();

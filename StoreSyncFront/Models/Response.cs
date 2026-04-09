@@ -15,6 +15,6 @@ public class Response
 
     public bool IsSuccess()
     {
-        return Status == 200 || Status == 204;
+        return Status >= 200 && Status < 300;
     }
 }

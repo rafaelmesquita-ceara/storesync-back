@@ -193,19 +193,37 @@
                             Text="{Binding Price}"
                             UseFloatingWatermark="True" />
 
-                        <ComboBox
-                            p1:ComboBoxAssist.Label="Categoria"
-                            ItemsSource="{Binding Categories}"
-                            MaxDropDownHeight="100"
-                            SelectedIndex="0"
-                            SelectedItem="{Binding SelectedCategory}"
-                            Theme="{StaticResource MaterialOutlineComboBox}">
-                            <ComboBox.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding Name}" />
-                                </DataTemplate>
-                            </ComboBox.ItemTemplate>
-                        </ComboBox>
+                        <Grid ColumnDefinitions="*, Auto">
+                            <ComboBox
+                                Grid.Column="0"
+                                p1:ComboBoxAssist.Label="Categoria"
+                                ItemsSource="{Binding Categories}"
+                                MaxDropDownHeight="100"
+                                SelectedIndex="0"
+                                SelectedItem="{Binding SelectedCategory}"
+                                Theme="{StaticResource MaterialOutlineComboBox}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Name}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <Button
+                                Grid.Column="1"
+                                Width="36"
+                                Height="36"
+                                Margin="4,0,0,0"
+                                Padding="4"
+                                VerticalAlignment="Center"
+                                Classes="Flat"
+                                Click="AddCategoryButton_Click"
+                                ToolTip.Tip="Nova categoria">
+                                <materialIcons:MaterialIcon
+                                    Width="20"
+                                    Height="20"
+                                    Kind="Plus" />
+                            </Button>
+                        </Grid>
                     </StackPanel>
 
                     <controls1:FloatingButton

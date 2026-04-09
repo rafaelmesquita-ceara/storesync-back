@@ -224,6 +224,16 @@ public partial class ProductsViewModel : ObservableValidator
         foreach (var p in filtered)
             Products.Add(p);
     }
+    public async Task AddCategoryAsync(string name)
+    {
+        await _categoryService.CreateCategoryAsync(new Category { Name = name });
+        var categories = await _categoryService.GetAllCategoriesAsync();
+        Categories.Clear();
+        foreach (var c in categories)
+            Categories.Add(c);
+        SelectedCategory = Categories.LastOrDefault(c => c.Name == name);
+    }
+
     private static string Normalize(string? text)
     {
         if (string.IsNullOrWhiteSpace(text))

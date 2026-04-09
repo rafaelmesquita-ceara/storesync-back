@@ -1,4 +1,5 @@
-﻿using Avalonia.Controls;
+﻿using System.Threading.Tasks;
+using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using SharedModels;
@@ -80,5 +81,15 @@ public partial class ProductsView : UserControl
     private void SearchTextBox_Loaded(object? sender, RoutedEventArgs e)
     {
         SearchTextBox.Focus();
+    }
+
+    private async void AddCategoryButton_Click(object? sender, RoutedEventArgs e)
+    {
+        var parentWindow = TopLevel.GetTopLevel(this) as Window;
+        var dialog = new AddCategoryDialog();
+        var name = await dialog.ShowDialog<string?>(parentWindow!);
+
+        if (!string.IsNullOrWhiteSpace(name) && DataContext is ProductsViewModel vm)
+            await vm.AddCategoryAsync(name);
     }
 }

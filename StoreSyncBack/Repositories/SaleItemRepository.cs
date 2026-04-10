@@ -22,6 +22,8 @@ namespace StoreSyncBack.Repositories
                     si.sale_id AS SaleId,
                     si.product_id AS ProductId,
                     si.quantity AS Quantity,
+                    si.discount AS Discount,
+                    si.addition AS Addition,
                     si.total_price AS TotalPrice,
                     si.created_at AS CreatedAt,
                     p.product_id AS ProductId,
@@ -49,6 +51,45 @@ namespace StoreSyncBack.Repositories
             return result;
         }
 
+        public async Task<IEnumerable<SaleItem>> GetSaleItemsBySaleIdAsync(Guid saleId)
+        {
+            var sql = @"
+                SELECT
+                    si.sale_item_id AS SaleItemId,
+                    si.sale_id AS SaleId,
+                    si.product_id AS ProductId,
+                    si.quantity AS Quantity,
+                    si.discount AS Discount,
+                    si.addition AS Addition,
+                    si.total_price AS TotalPrice,
+                    si.created_at AS CreatedAt,
+                    p.product_id AS ProductId,
+                    p.reference AS Reference,
+                    p.name AS Name,
+                    p.category_id AS CategoryId,
+                    p.price AS Price,
+                    p.stock_quantity AS StockQuantity,
+                    p.created_at AS CreatedAt
+                FROM sale_item si
+                LEFT JOIN product p ON si.product_id = p.product_id
+                WHERE si.sale_id = @SaleId
+                ORDER BY si.created_at;
+            ";
+
+            var result = await _db.QueryAsync<SaleItem, Product, SaleItem>(
+                sql,
+                (saleItem, product) =>
+                {
+                    saleItem.Product = product;
+                    return saleItem;
+                },
+                new { SaleId = saleId },
+                splitOn: "ProductId"
+            );
+
+            return result;
+        }
+
         public async Task<SaleItem?> GetSaleItemByIdAsync(Guid saleItemId)
         {
             var sql = @"
@@ -57,6 +98,8 @@ namespace StoreSyncBack.Repositories
                     si.sale_id AS SaleId,
                     si.product_id AS ProductId,
                     si.quantity AS Quantity,
+                    si.discount AS Discount,
+                    si.addition AS Addition,
                     si.total_price AS TotalPrice,
                     si.created_at AS CreatedAt,
                     p.product_id AS ProductId,
@@ -93,14 +136,13 @@ namespace StoreSyncBack.Repositories
             if (saleItem.CreatedAt == default)
                 saleItem.CreatedAt = DateTime.UtcNow;
 
-            // garante total price consistente (se o consumidor não calculou)
-            saleItem.TotalPrice = saleItem.TotalPrice == 0m
-                ? saleItem.Quantity * (saleItem.Product?.Price ?? 0m)
-                : saleItem.TotalPrice;
+            if (saleItem.TotalPrice == 0m)
+                saleItem.TotalPrice = (saleItem.Quantity * (saleItem.Product?.Price ?? 0m))
+                                      - saleItem.Discount + saleItem.Addition;
 
             var sql = @"
-                INSERT INTO sale_item (sale_item_id, sale_id, product_id, quantity, total_price, created_at)
-                VALUES (@SaleItemId, @SaleId, @ProductId, @Quantity, @TotalPrice, @CreatedAt);
+                INSERT INTO sale_item (sale_item_id, sale_id, product_id, quantity, discount, addition, total_price, created_at)
+                VALUES (@SaleItemId, @SaleId, @ProductId, @Quantity, @Discount, @Addition, @TotalPrice, @CreatedAt);
             ";
 
             var affected = await _db.ExecuteAsync(sql, new
@@ -109,10 +151,13 @@ namespace StoreSyncBack.Repositories
                 saleItem.SaleId,
                 saleItem.ProductId,
                 saleItem.Quantity,
+                saleItem.Discount,
+                saleItem.Addition,
                 saleItem.TotalPrice,
                 saleItem.CreatedAt
             });
 
+            await RecalculateSaleTotalAsync(saleItem.SaleId);
             return affected;
         }
 
@@ -123,6 +168,8 @@ namespace StoreSyncBack.Repositories
                 SET
                     product_id = @ProductId,
                     quantity = @Quantity,
+                    discount = @Discount,
+                    addition = @Addition,
                     total_price = @TotalPrice
                 WHERE sale_item_id = @SaleItemId;
             ";
@@ -131,18 +178,41 @@ namespace StoreSyncBack.Repositories
             {
                 saleItem.ProductId,
                 saleItem.Quantity,
+                saleItem.Discount,
+                saleItem.Addition,
                 saleItem.TotalPrice,
                 saleItem.SaleItemId
             });
 
+            await RecalculateSaleTotalAsync(saleItem.SaleId);
             return affected;
         }
 
         public async Task<int> DeleteSaleItemAsync(Guid saleItemId)
         {
+            var saleId = await _db.ExecuteScalarAsync<Guid?>(
+                "SELECT sale_id FROM sale_item WHERE sale_item_id = @Id;",
+                new { Id = saleItemId });
+
             var sql = "DELETE FROM sale_item WHERE sale_item_id = @Id;";
             var affected = await _db.ExecuteAsync(sql, new { Id = saleItemId });
+
+            if (saleId.HasValue)
+                await RecalculateSaleTotalAsync(saleId.Value);
+
             return affected;
+        }
+
+        private async Task RecalculateSaleTotalAsync(Guid saleId)
+        {
+            var sql = @"
+                UPDATE sale
+                SET total_amount = COALESCE(
+                    (SELECT SUM(total_price) FROM sale_item WHERE sale_id = @Id), 0)
+                    - sale.discount + sale.addition
+                WHERE sale_id = @Id;
+            ";
+            await _db.ExecuteAsync(sql, new { Id = saleId });
         }
     }
 }

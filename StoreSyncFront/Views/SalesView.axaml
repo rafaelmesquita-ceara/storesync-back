@@ -1,0 +1,303 @@
+<UserControl
+    x:Class="StoreSyncFront.Views.SalesView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls1="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
+    xmlns:converters="using:StoreSyncFront.Utils"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:materialIcons="using:Material.Icons.Avalonia"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:p1="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
+    xmlns:vm="clr-namespace:StoreSyncFront.ViewModels"
+    x:Name="Root"
+    d:DesignHeight="600"
+    d:DesignWidth="900"
+    x:DataType="vm:SalesViewModel"
+    mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+    </UserControl.Resources>
+
+    <controls1:Card Margin="16">
+        <Grid Margin="16" RowDefinitions="Auto, Auto, *">
+
+            <!-- Header -->
+            <Grid Margin="0,0,0,10" HorizontalAlignment="Stretch" ColumnDefinitions="*, *">
+
+                <TextBlock
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Classes="Headline6"
+                    Text="{Binding Title}" />
+
+                <!-- Busca (modo lista) -->
+                <TextBox
+                    x:Name="SearchTextBox"
+                    Grid.Column="1"
+                    HorizontalAlignment="Stretch"
+                    Classes="solo"
+                    IsVisible="{Binding IsEdit, Converter={StaticResource InverseBooleanConverter}}"
+                    KeyUp="SearchTextBox_KeyUp"
+                    Loaded="SearchTextBox_Loaded"
+                    Text="{Binding SearchBarField}"
+                    Theme="{StaticResource SoloTextBox}"
+                    Watermark="Buscar...">
+                    <TextBox.InnerRightContent>
+                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="5">
+                            <Button Width="{Binding $self.Bounds.Height}" Padding="4" Classes="Flat" Command="{Binding SearchCommand}">
+                                <materialIcons:MaterialIcon Width="24" Height="24" Kind="Search" />
+                            </Button>
+                            <Button Width="{Binding $self.Bounds.Height}" Padding="4" Classes="Flat" HotKey="F5" Command="{Binding RefreshCommand}">
+                                <materialIcons:MaterialIcon Width="24" Height="24" Kind="Refresh" />
+                            </Button>
+                        </StackPanel>
+                    </TextBox.InnerRightContent>
+                </TextBox>
+
+                <!-- Botão Ações (modo formulário) -->
+                <StackPanel
+                    Grid.Column="1"
+                    HorizontalAlignment="Right"
+                    IsVisible="{Binding IsEdit}"
+                    Orientation="Vertical"
+                    Spacing="4">
+
+                    <Button
+                        HorizontalAlignment="Right"
+                        Classes="Outlined"
+                        Command="{Binding ToggleActionsCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock VerticalAlignment="Center" Text="Ações" />
+                            <materialIcons:MaterialIcon
+                                Width="16" Height="16"
+                                IsVisible="{Binding IsActionsExpanded, Converter={StaticResource InverseBooleanConverter}}"
+                                Kind="ChevronDown" />
+                            <materialIcons:MaterialIcon
+                                Width="16" Height="16"
+                                IsVisible="{Binding IsActionsExpanded}"
+                                Kind="ChevronUp" />
+                        </StackPanel>
+                    </Button>
+
+                    <Border
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        IsVisible="{Binding IsActionsExpanded}"
+                        Opacity="0.95"
+                        Padding="4"
+                        ZIndex="10">
+                        <StackPanel Spacing="2">
+                            <Button
+                                Classes="Flat"
+                                Click="FinalizarVendaButton_Click"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Left"
+                                IsEnabled="{Binding CanFinalize}">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <materialIcons:MaterialIcon Width="16" Height="16" Kind="CheckCircle" />
+                                    <TextBlock Text="Finalizar Venda" />
+                                </StackPanel>
+                            </Button>
+                            <Button
+                                Classes="Flat"
+                                Click="CancelarVendaButton_Click"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Left"
+                                IsEnabled="{Binding CanCancel}">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <materialIcons:MaterialIcon Width="16" Height="16" Kind="Cancel" />
+                                    <TextBlock Text="Cancelar Venda" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+
+            <Separator Grid.Row="1" Margin="0,0,0,10" />
+
+            <!-- Conteúdo -->
+            <Panel Grid.Row="2">
+
+                <!-- Lista -->
+                <Grid IsVisible="{Binding IsEdit, Converter={StaticResource InverseBooleanConverter}}">
+                    <RefreshContainer PullDirection="TopToBottom" RefreshRequested="RefreshContainer_RefreshRequested">
+                        <DataGrid
+                            x:Name="SalesDataGrid"
+                            AutoGenerateColumns="False"
+                            IsReadOnly="True"
+                            ItemsSource="{Binding Sales}"
+                            KeyDown="SalesDataGrid_KeyDown">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn
+                                    Width="1*"
+                                    Binding="{Binding Referencia}"
+                                    Header="Referência" />
+                                <DataGridTextColumn
+                                    Width="2*"
+                                    Binding="{Binding SaleDate, StringFormat='{}{0:dd/MM/yyyy HH:mm}'}"
+                                    Header="Data" />
+                                <DataGridTextColumn
+                                    Width="2.5*"
+                                    Binding="{Binding EmployeeName}"
+                                    Header="Funcionário" />
+                                <DataGridTextColumn
+                                    Width="1.5*"
+                                    Binding="{Binding TotalAmount, StringFormat='{}{0:N2}'}"
+                                    Header="Valor Total (R$)" />
+                                <DataGridTextColumn
+                                    Width="1.5*"
+                                    Binding="{Binding StatusLabel}"
+                                    Header="Situação" />
+                                <DataGridTemplateColumn Header="Ações">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="5">
+                                                <controls1:FloatingButton
+                                                    Margin="3"
+                                                    Classes="Mini"
+                                                    Command="{Binding #Root.((vm:SalesViewModel)DataContext).OpenViewCommand}"
+                                                    CommandParameter="{Binding SaleId}"
+                                                    ToolTip.Tip="Visualizar">
+                                                    <materialIcons:MaterialIcon Width="16" Height="16" Kind="Eye" />
+                                                </controls1:FloatingButton>
+                                                <controls1:FloatingButton
+                                                    Margin="3"
+                                                    Classes="Mini"
+                                                    Command="{Binding #Root.((vm:SalesViewModel)DataContext).OpenEditCommand}"
+                                                    CommandParameter="{Binding SaleId}"
+                                                    ToolTip.Tip="Editar">
+                                                    <materialIcons:MaterialIcon Width="16" Height="16" Kind="Edit" />
+                                                </controls1:FloatingButton>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </RefreshContainer>
+
+                    <controls1:FloatingButton
+                        Margin="24"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        Background="DarkGreen"
+                        Command="{Binding ToggleEditCommand}"
+                        HotKey="F1">
+                        <materialIcons:MaterialIcon Kind="Plus" />
+                    </controls1:FloatingButton>
+                </Grid>
+
+                <!-- Formulário -->
+                <Grid IsVisible="{Binding IsEdit}">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="0,0,0,80">
+
+                            <!-- Funcionário -->
+                            <ComboBox
+                                HorizontalAlignment="Stretch"
+                                ItemsSource="{Binding Employees}"
+                                SelectedItem="{Binding SelectedEmployee}"
+                                IsEnabled="{Binding IsViewOnly, Converter={StaticResource InverseBooleanConverter}}"
+                                p1:ComboBoxAssist.Label="Funcionário"
+                                Theme="{StaticResource MaterialOutlineComboBox}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Name}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+
+                            <Grid ColumnDefinitions="*, *" Margin="0,8,0,0">
+                                <TextBox
+                                    Grid.Column="0"
+                                    Margin="0,0,4,0"
+                                    p1:TextFieldAssist.Label="Desconto (R$)"
+                                    IsEnabled="{Binding IsViewOnly, Converter={StaticResource InverseBooleanConverter}}"
+                                    Text="{Binding Discount}"
+                                    UseFloatingWatermark="True" />
+                                <TextBox
+                                    Grid.Column="1"
+                                    Margin="4,0,0,0"
+                                    p1:TextFieldAssist.Label="Acréscimo (R$)"
+                                    IsEnabled="{Binding IsViewOnly, Converter={StaticResource InverseBooleanConverter}}"
+                                    Text="{Binding Addition}"
+                                    UseFloatingWatermark="True" />
+                            </Grid>
+
+                            <Separator Margin="0,16,0,8" />
+
+                            <TextBlock Margin="0,0,0,4" Classes="Body2" Opacity="0.6" Text="Itens da Venda" />
+
+                            <!-- Grid de itens -->
+                            <DataGrid
+                                x:Name="ItemsDataGrid"
+                                Height="200"
+                                AutoGenerateColumns="False"
+                                IsReadOnly="True"
+                                ItemsSource="{Binding SaleItems}"
+                                SelectedItem="{Binding SelectedSaleItem}">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Width="1.2*" Binding="{Binding ProductReference}" Header="Referência" />
+                                    <DataGridTextColumn Width="2*" Binding="{Binding ProductName}" Header="Nome" />
+                                    <DataGridTextColumn Width="0.8*" Binding="{Binding Quantity}" Header="Qtd" />
+                                    <DataGridTextColumn Width="1.2*" Binding="{Binding UnitPrice, StringFormat='{}{0:N2}'}" Header="Preço Un. (R$)" />
+                                    <DataGridTextColumn Width="1*" Binding="{Binding Discount, StringFormat='{}{0:N2}'}" Header="Desc. (R$)" />
+                                    <DataGridTextColumn Width="1*" Binding="{Binding Addition, StringFormat='{}{0:N2}'}" Header="Acrés. (R$)" />
+                                    <DataGridTextColumn Width="1.2*" Binding="{Binding TotalPrice, StringFormat='{}{0:N2}'}" Header="Total (R$)" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+
+                            <!-- Botões Adicionar/Remover -->
+                            <StackPanel
+                                Margin="0,8,0,0"
+                                Orientation="Horizontal"
+                                Spacing="8"
+                                IsVisible="{Binding IsViewOnly, Converter={StaticResource InverseBooleanConverter}}">
+                                <Button Classes="Outlined" Click="AdicionarItemButton_Click">
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <materialIcons:MaterialIcon Width="16" Height="16" Kind="Plus" />
+                                        <TextBlock Text="Adicionar Item" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Classes="Outlined" Command="{Binding RemoveItemCommand}">
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <materialIcons:MaterialIcon Width="16" Height="16" Kind="Minus" />
+                                        <TextBlock Text="Remover Item" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+
+                            <Separator Margin="0,12,0,8" />
+
+                            <!-- Valor total -->
+                            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Spacing="8">
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    Classes="Headline6"
+                                    Text="Valor Total:" />
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    Classes="Headline5"
+                                    Text="{Binding TotalAmount, StringFormat='R$ {0:N2}'}" />
+                            </StackPanel>
+
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Botão Fechar -->
+                    <controls1:FloatingButton
+                        Margin="24"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        Background="DarkRed"
+                        Command="{Binding ClearFormCommand}"
+                        HotKey="Escape">
+                        <materialIcons:MaterialIcon Kind="Close" />
+                    </controls1:FloatingButton>
+                </Grid>
+            </Panel>
+        </Grid>
+    </controls1:Card>
+</UserControl>

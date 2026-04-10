@@ -8,6 +8,8 @@ public class SaleItem
     public Guid ProductId { get; set; }
     public Product? Product { get; set; }
     public int Quantity { get; set; }
+    public decimal Discount { get; set; }
+    public decimal Addition { get; set; }
     public decimal TotalPrice { get; set; }
     public DateTime CreatedAt { get; set; }
 }

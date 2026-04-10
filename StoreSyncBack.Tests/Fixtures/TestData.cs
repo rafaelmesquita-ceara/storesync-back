@@ -100,15 +100,22 @@ namespace StoreSyncBack.Tests.Fixtures
 
         #region Sale
 
+        private static int _saleReferenciaCounter;
+
         private static readonly Faker<Sale> SaleFaker = new Faker<Sale>("pt_BR")
             .RuleFor(s => s.SaleId, f => Guid.NewGuid())
+            .RuleFor(s => s.Referencia, _ => (++_saleReferenciaCounter).ToString("D5"))
             .RuleFor(s => s.EmployeeId, f => Guid.NewGuid())
+            .RuleFor(s => s.Discount, _ => 0)
+            .RuleFor(s => s.Addition, _ => 0)
             .RuleFor(s => s.TotalAmount, f => f.Random.Decimal(50, 5000))
+            .RuleFor(s => s.Status, _ => SaleStatus.Aberta)
             .RuleFor(s => s.SaleDate, f => f.Date.Past());
 
-        public static Sale CreateSale(decimal? totalAmount = null)
+        public static Sale CreateSale(decimal? totalAmount = null, int status = SaleStatus.Aberta)
         {
             var sale = SaleFaker.Generate();
+            sale.Status = status;
             if (totalAmount.HasValue)
                 sale.TotalAmount = totalAmount.Value;
             return sale;
@@ -125,6 +132,8 @@ namespace StoreSyncBack.Tests.Fixtures
             .RuleFor(si => si.SaleId, f => Guid.NewGuid())
             .RuleFor(si => si.ProductId, f => Guid.NewGuid())
             .RuleFor(si => si.Quantity, f => f.Random.Int(1, 10))
+            .RuleFor(si => si.Discount, _ => 0)
+            .RuleFor(si => si.Addition, _ => 0)
             .RuleFor(si => si.TotalPrice, f => f.Random.Decimal(10, 500));
 
         public static SaleItem CreateSaleItem(int? quantity = null)
@@ -164,16 +173,28 @@ namespace StoreSyncBack.Tests.Fixtures
 
         private static readonly Faker<Finance> FinanceFaker = new Faker<Finance>("pt_BR")
             .RuleFor(f => f.FinanceId, f => Guid.NewGuid())
+            .RuleFor(f => f.Reference, f => f.Finance.Account())
             .RuleFor(f => f.Description, f => f.Lorem.Sentence())
             .RuleFor(f => f.Amount, f => f.Random.Decimal(100, 10000))
             .RuleFor(f => f.DueDate, f => f.Date.Future())
-            .RuleFor(f => f.Status, f => f.PickRandom("pending", "paid", "overdue"));
+            .RuleFor(f => f.Status, _ => FinanceStatus.Aberto)
+            .RuleFor(f => f.Type, _ => FinanceType.Pagar)
+            .RuleFor(f => f.TitleType, _ => FinanceTitleType.Original)
+            .RuleFor(f => f.CreatedAt, f => f.Date.Past());
 
-        public static Finance CreateFinance(string? status = null)
+        public static Finance CreateFinance(int status = FinanceStatus.Aberto, int type = FinanceType.Pagar)
         {
             var finance = FinanceFaker.Generate();
-            if (status != null)
-                finance.Status = status;
+            finance.Status = status;
+            finance.Type = type;
+            return finance;
+        }
+
+        public static Finance CreateFinanceWithAmount(decimal amount, int status = FinanceStatus.Aberto)
+        {
+            var finance = FinanceFaker.Generate();
+            finance.Amount = amount;
+            finance.Status = status;
             return finance;
         }
 

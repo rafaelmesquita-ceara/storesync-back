@@ -19,6 +19,11 @@
                 <MenuItem Header="Produtos" Command="{Binding OpenProductsTabCommand}"/>
                 <MenuItem Header="Funcionários" Command="{Binding OpenEmployeesTabCommand}"/>
             </MenuItem>
+            <MenuItem Header="_Movimentações">
+                <MenuItem Header="Vendas" Command="{Binding OpenSalesTabCommand}" />
+                <MenuItem Header="Contas a Pagar" Command="{Binding OpenAccountsPayableTabCommand}" />
+                <MenuItem Header="Contas a Receber" Command="{Binding OpenAccountsReceivableTabCommand}" />
+            </MenuItem>
         </Menu>
         
         <TabControl ItemsSource="{Binding Tabs}" 

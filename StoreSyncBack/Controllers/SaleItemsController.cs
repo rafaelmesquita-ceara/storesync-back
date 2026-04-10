@@ -32,6 +32,13 @@ namespace StoreSyncBack.Controllers
             return Ok(item);
         }
 
+        [HttpGet("by-sale/{saleId:guid}")]
+        public async Task<IActionResult> GetBySaleId(Guid saleId)
+        {
+            var items = await _service.GetSaleItemsBySaleIdAsync(saleId);
+            return Ok(items);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] SaleItem saleItem)
         {
@@ -46,6 +53,10 @@ namespace StoreSyncBack.Controllers
             catch (ArgumentException ex)
             {
                 _logger.LogWarning(ex, "Validação CreateSaleItem inválida");
+                return BadRequest(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
                 return BadRequest(ex.Message);
             }
             catch (Exception ex)
@@ -91,6 +102,10 @@ namespace StoreSyncBack.Controllers
             catch (ArgumentException ex)
             {
                 _logger.LogWarning(ex, "Validação DeleteSaleItem inválida");
+                return BadRequest(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
                 return BadRequest(ex.Message);
             }
             catch (Exception ex)

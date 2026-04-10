@@ -10,6 +10,7 @@ using StoreSyncFront.Services;
 using StoreSyncFront.Views;
 using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
+using SharedModels;
 using SharedModels.Interfaces;
 
 namespace StoreSyncFront.ViewModels;
@@ -22,6 +23,9 @@ public partial class MainViewModel : ObservableObject
     private readonly IProductService _productService;
     private readonly ICategoryService _categoryService;
     private readonly IEmployeeService _employeeService;
+    private readonly IFinanceService _financeService;
+    private readonly ISaleService _saleService;
+    private readonly ISaleItemService _saleItemService;
     
     [ObservableProperty] 
     private string _username = string.Empty;
@@ -32,13 +36,16 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private TabItemViewModel? _selectedTab;
     
-    public MainViewModel(INavigationService navigationService, IAuthService authService, IProductService productService, ICategoryService categoryService, IEmployeeService employeeService)
+    public MainViewModel(INavigationService navigationService, IAuthService authService, IProductService productService, ICategoryService categoryService, IEmployeeService employeeService, IFinanceService financeService, ISaleService saleService, ISaleItemService saleItemService)
     {
         this._navigationService = navigationService;
         this._authService = authService;
         this._productService = productService;
         this._categoryService = categoryService;
         this._employeeService = employeeService;
+        this._financeService = financeService;
+        this._saleService = saleService;
+        this._saleItemService = saleItemService;
         
 
         var loggedUser = _authService.GetLoggedUser();
@@ -132,6 +139,57 @@ public partial class MainViewModel : ObservableObject
         var usersTab = new TabItemViewModel("Usuários", usersVm, true, CloseTab);
         Tabs.Add(usersTab);
         SelectedTab = usersTab;
+    }
+
+    [RelayCommand]
+    private async Task OpenAccountsPayableTab()
+    {
+        var existingTab = Tabs.FirstOrDefault(t => t.Content is FinancesViewModel vm && vm.Title == "Contas a Pagar");
+        if (existingTab != null)
+        {
+            SelectedTab = existingTab;
+            return;
+        }
+
+        var financesVm = new FinancesViewModel(_financeService, FinanceType.Pagar);
+        await financesVm.LoadDataAsync();
+        var tab = new TabItemViewModel("Contas a Pagar", financesVm, true, CloseTab);
+        Tabs.Add(tab);
+        SelectedTab = tab;
+    }
+
+    [RelayCommand]
+    private async Task OpenAccountsReceivableTab()
+    {
+        var existingTab = Tabs.FirstOrDefault(t => t.Content is FinancesViewModel vm && vm.Title == "Contas a Receber");
+        if (existingTab != null)
+        {
+            SelectedTab = existingTab;
+            return;
+        }
+
+        var financesVm = new FinancesViewModel(_financeService, FinanceType.Receber);
+        await financesVm.LoadDataAsync();
+        var tab = new TabItemViewModel("Contas a Receber", financesVm, true, CloseTab);
+        Tabs.Add(tab);
+        SelectedTab = tab;
+    }
+
+    [RelayCommand]
+    private async Task OpenSalesTab()
+    {
+        var existingTab = Tabs.FirstOrDefault(t => t.Content is SalesViewModel);
+        if (existingTab != null)
+        {
+            SelectedTab = existingTab;
+            return;
+        }
+
+        var salesVm = new SalesViewModel(_saleService, _saleItemService, _productService, _employeeService, _authService);
+        await salesVm.LoadDataAsync();
+        var tab = new TabItemViewModel("Vendas", salesVm, true, CloseTab);
+        Tabs.Add(tab);
+        SelectedTab = tab;
     }
 
     private void CloseTab(TabItemViewModel tab)

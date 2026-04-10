@@ -72,6 +72,10 @@ namespace StoreSyncBack.Controllers
                 _logger.LogWarning(ex, "Validação UpdateSale inválida");
                 return BadRequest(ex.Message);
             }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erro ao atualizar venda");
@@ -79,23 +83,52 @@ namespace StoreSyncBack.Controllers
             }
         }
 
-        [HttpDelete("{id:guid}")]
-        public async Task<IActionResult> Delete(Guid id)
+        [HttpPost("{id:guid}/finalize")]
+        public async Task<IActionResult> Finalize(Guid id)
         {
             try
             {
-                var affected = await _service.DeleteSaleAsync(id);
+                var affected = await _service.FinalizeSaleAsync(id);
                 if (affected <= 0) return NotFound();
                 return NoContent();
             }
             catch (ArgumentException ex)
             {
-                _logger.LogWarning(ex, "Validação DeleteSale inválida");
+                _logger.LogWarning(ex, "Validação FinalizeSale inválida");
+                return BadRequest(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
                 return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro ao deletar venda");
+                _logger.LogError(ex, "Erro ao finalizar venda");
+                return StatusCode(500, "Erro interno.");
+            }
+        }
+
+        [HttpPost("{id:guid}/cancel")]
+        public async Task<IActionResult> Cancel(Guid id)
+        {
+            try
+            {
+                var affected = await _service.CancelSaleAsync(id);
+                if (affected <= 0) return NotFound();
+                return NoContent();
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Validação CancelSale inválida");
+                return BadRequest(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao cancelar venda");
                 return StatusCode(500, "Erro interno.");
             }
         }

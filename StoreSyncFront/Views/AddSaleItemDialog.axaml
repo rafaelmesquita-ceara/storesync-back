@@ -1,0 +1,94 @@
+<Window
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
+    xmlns:materialIcons="using:Material.Icons.Avalonia"
+    xmlns:p1="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
+    x:Class="StoreSyncFront.Views.AddSaleItemDialog"
+    Title="Adicionar Item"
+    Width="450"
+    Height="560"
+    CanResize="False"
+    ShowInTaskbar="False"
+    WindowStartupLocation="CenterOwner">
+
+    <controls:Card Margin="16">
+        <Grid RowDefinitions="*, Auto">
+
+            <StackPanel Grid.Row="0" Spacing="10" VerticalAlignment="Top">
+
+                <Grid ColumnDefinitions="*, Auto">
+                    <TextBox
+                        x:Name="ProductBox"
+                        Grid.Column="0"
+                        p1:TextFieldAssist.Label="Produto"
+                        IsReadOnly="True"
+                        UseFloatingWatermark="True" />
+                    <Button
+                        Grid.Column="1"
+                        Margin="4,0,0,0"
+                        VerticalAlignment="Bottom"
+                        Classes="Flat"
+                        Click="SearchProductButton_Click"
+                        ToolTip.Tip="Buscar produto">
+                        <materialIcons:MaterialIcon Width="24" Height="24" Kind="Search" />
+                    </Button>
+                </Grid>
+
+                <TextBox
+                    x:Name="StockBox"
+                    p1:TextFieldAssist.Label="Estoque disponível"
+                    IsEnabled="False"
+                    UseFloatingWatermark="True" />
+
+                <TextBox
+                    x:Name="UnitPriceBox"
+                    p1:TextFieldAssist.Label="Preço unitário (R$)"
+                    IsEnabled="False"
+                    UseFloatingWatermark="True" />
+
+                <TextBox
+                    x:Name="QuantityBox"
+                    p1:TextFieldAssist.Label="Quantidade"
+                    KeyDown="Box_KeyDown"
+                    UseFloatingWatermark="True" />
+
+                <TextBox
+                    x:Name="DiscountBox"
+                    p1:TextFieldAssist.Label="Desconto (R$)"
+                    Text="0"
+                    KeyDown="Box_KeyDown"
+                    UseFloatingWatermark="True" />
+
+                <TextBox
+                    x:Name="AdditionBox"
+                    p1:TextFieldAssist.Label="Acréscimo (R$)"
+                    Text="0"
+                    KeyDown="Box_KeyDown"
+                    UseFloatingWatermark="True" />
+
+                <TextBox
+                    x:Name="TotalBox"
+                    p1:TextFieldAssist.Label="Total do item (R$)"
+                    IsEnabled="False"
+                    UseFloatingWatermark="True" />
+
+            </StackPanel>
+
+            <StackPanel
+                Grid.Row="1"
+                Margin="0,12,0,0"
+                HorizontalAlignment="Right"
+                Orientation="Horizontal"
+                Spacing="8">
+                <Button Classes="Outlined" Click="CancelButton_Click" Width="100">
+                    Cancelar
+                </Button>
+                <Button Classes="Raised" Background="DarkGreen" Click="ConfirmButton_Click" Width="100">
+                    Confirmar
+                </Button>
+            </StackPanel>
+
+        </Grid>
+    </controls:Card>
+</Window>

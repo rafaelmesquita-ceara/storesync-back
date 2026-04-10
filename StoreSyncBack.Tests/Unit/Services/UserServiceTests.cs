@@ -290,8 +290,16 @@ namespace StoreSyncBack.Tests.Unit.Services
         public async Task UpdateUserAsync_UsuarioValido_RetornaLinhasAfetadas()
         {
             // Arrange
+            var userId = Guid.NewGuid();
             var user = TestData.CreateUser("usuario");
-            user.UserId = Guid.NewGuid();
+            user.UserId = userId;
+            var existing = TestData.CreateUser("usuario");
+            existing.UserId = userId;
+            existing.Password = "hash-existente";
+            existing.EmployeeId = Guid.NewGuid();
+
+            _userRepoMock.Setup(r => r.GetUserByIdAsync(userId))
+                .ReturnsAsync(existing);
             _userRepoMock.Setup(r => r.UpdateUserAsync(It.IsAny<User>()))
                 .ReturnsAsync(1);
 
@@ -330,10 +338,16 @@ namespace StoreSyncBack.Tests.Unit.Services
         {
             // Arrange
             var plainPassword = "novasenha";
+            var userId = Guid.NewGuid();
             var user = TestData.CreateUser("usuario", plainPassword);
-            user.UserId = Guid.NewGuid();
+            user.UserId = userId;
+            var existing = TestData.CreateUser("usuario", BCrypt.Net.BCrypt.HashPassword("antiga"));
+            existing.UserId = userId;
+            existing.EmployeeId = Guid.NewGuid();
             string? capturedPassword = null;
 
+            _userRepoMock.Setup(r => r.GetUserByIdAsync(userId))
+                .ReturnsAsync(existing);
             _userRepoMock.Setup(r => r.UpdateUserAsync(It.IsAny<User>()))
                 .Callback<User>(u => capturedPassword = u.Password)
                 .ReturnsAsync(1);
@@ -350,10 +364,19 @@ namespace StoreSyncBack.Tests.Unit.Services
         public async Task UpdateUserAsync_SemSenha_NaoAlteraSenha()
         {
             // Arrange
+            var userId = Guid.NewGuid();
+            const string preservedHash = "hash-armazenado";
             var user = TestData.CreateUser("usuario");
-            user.UserId = Guid.NewGuid();
+            user.UserId = userId;
             user.Password = null;
 
+            var existing = TestData.CreateUser("usuario");
+            existing.UserId = userId;
+            existing.Password = preservedHash;
+            existing.EmployeeId = Guid.NewGuid();
+
+            _userRepoMock.Setup(r => r.GetUserByIdAsync(userId))
+                .ReturnsAsync(existing);
             _userRepoMock.Setup(r => r.UpdateUserAsync(It.IsAny<User>()))
                 .ReturnsAsync(1);
 
@@ -362,7 +385,20 @@ namespace StoreSyncBack.Tests.Unit.Services
 
             // Assert
             _userRepoMock.Verify(r => r.UpdateUserAsync(It.Is<User>(
-                u => u.Password == null)), Times.Once);
+                u => u.Password == preservedHash)), Times.Once);
+        }
+
+        [Fact]
+        public async Task UpdateUserAsync_UsuarioInexistente_LancaArgumentException()
+        {
+            var user = TestData.CreateUser("usuario");
+            user.UserId = Guid.NewGuid();
+
+            _userRepoMock.Setup(r => r.GetUserByIdAsync(user.UserId))
+                .ReturnsAsync((User?)null);
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                _userService.UpdateUserAsync(user));
         }
 
         #endregion

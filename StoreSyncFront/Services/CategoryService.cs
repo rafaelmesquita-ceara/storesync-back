@@ -40,7 +40,7 @@ public class CategoryService(IApiService apiService) : ICategoryService
 
     public async Task<int> UpdateCategoryAsync(Category category)
     {
-        Response response = await apiService.PutAsync($"/api/Categories/${category.CategoryId}", JsonContent.Create(category));
+        Response response = await apiService.PutAsync($"/api/Categories/{category.CategoryId}", JsonContent.Create(category));
         SnackBarService.Send(response.IsSuccess() ? "Categoria atualizada com sucesso." : "Erro ao atualizar categoria: " + response.Body);
         return response.IsSuccess() ? 0 : 1;
     }

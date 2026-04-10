@@ -53,5 +53,20 @@
       <Compile Update="Views\AddCategoryDialog.axaml.cs">
         <DependentUpon>AddCategoryDialog.axaml</DependentUpon>
       </Compile>
+      <Compile Update="Views\EmployeesView.axaml.cs">
+        <DependentUpon>EmployeesView.axaml</DependentUpon>
+      </Compile>
+      <Compile Update="Views\AddRoleDialog.axaml.cs">
+        <DependentUpon>AddRoleDialog.axaml</DependentUpon>
+      </Compile>
+      <Compile Update="Views\UsersView.axaml.cs">
+        <DependentUpon>UsersView.axaml</DependentUpon>
+      </Compile>
+      <Compile Update="Views\CategoriesView.axaml.cs">
+        <DependentUpon>CategoriesView.axaml</DependentUpon>
+      </Compile>
+      <Compile Update="Views\ChangePasswordDialog.axaml.cs">
+        <DependentUpon>ChangePasswordDialog.axaml</DependentUpon>
+      </Compile>
     </ItemGroup>
 </Project>

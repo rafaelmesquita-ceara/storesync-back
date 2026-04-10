@@ -14,8 +14,10 @@
                 <MenuItem Header="_Sair" Command="{Binding LogoutCommand}"/>
             </MenuItem>
             <MenuItem Header="_Cadastros">
-                <MenuItem Header="Usuários" />
+                <MenuItem Header="Usuários" Command="{Binding OpenUsersTabCommand}" />
+                <MenuItem Header="Categorias" Command="{Binding OpenCategoriesTabCommand}" />
                 <MenuItem Header="Produtos" Command="{Binding OpenProductsTabCommand}"/>
+                <MenuItem Header="Funcionários" Command="{Binding OpenEmployeesTabCommand}"/>
             </MenuItem>
         </Menu>
         

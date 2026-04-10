@@ -83,11 +83,18 @@ namespace StoreSyncBack.Services
         {
             if (user == null) throw new ArgumentNullException(nameof(user));
             if (user.UserId == Guid.Empty) throw new ArgumentException("UserId inválido.", nameof(user.UserId));
-            if (!string.IsNullOrWhiteSpace(user.Password))
-            {
-                // re-hash caso a senha seja atualizada
+
+            var existing = await _repo.GetUserByIdAsync(user.UserId);
+            if (existing == null) throw new ArgumentException("Usuário não encontrado.");
+
+            if (string.IsNullOrWhiteSpace(user.Password))
+                user.Password = existing.Password;
+            else
                 user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
-            }
+
+            if (!user.EmployeeId.HasValue || user.EmployeeId == Guid.Empty)
+                user.EmployeeId = existing.EmployeeId;
+
             return await _repo.UpdateUserAsync(user);
         }
 

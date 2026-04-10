@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SharedModels;
 using SharedModels.Interfaces;
 using StoreSyncFront.Models;
-using System.IO;
 using System.Text.Json;
-using System.Threading.Tasks;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace StoreSyncFront.Services;
@@ -20,30 +17,40 @@ public class AuthService : IAuthService
     private readonly IApiService _apiService;
     private User? _loggedUser;
     private const string UserDataFile = "user_data.json";
-    
+
     public AuthService(IApiService apiService)
     {
         _apiService = apiService;
     }
-    
-    public Task<IEnumerable<User>> GetAllUsersAsync()
+
+    public async Task<IEnumerable<User>> GetAllUsersAsync()
     {
-        throw new NotImplementedException();
+        Response response = await _apiService.GetAsync("/api/Users");
+        if (response.IsSuccess())
+            return JsonConvert.DeserializeObject<List<User>>(response.Body) ?? [];
+
+        SnackBarService.Send("Erro ao buscar usuários: " + response.Body);
+        return [];
     }
 
-    public Task<User?> GetUserByIdAsync(Guid userId)
+    public async Task<User?> GetUserByIdAsync(Guid userId)
     {
-        throw new NotImplementedException();
+        Response response = await _apiService.GetAsync($"/api/Users/{userId}");
+        if (response.IsSuccess())
+            return JsonConvert.DeserializeObject<User>(response.Body);
+
+        SnackBarService.Send("Erro ao buscar usuário: " + response.Body);
+        return null;
     }
 
-    public Task<User?> Login(UserLoginDto userLoginDto)
+    public async Task<User?> Login(UserLoginDto userLoginDto)
     {
-        throw new NotImplementedException();
-    }
+        var content = JsonContent.Create(userLoginDto);
+        Response response = await _apiService.PostAsync("/api/Users/login", content);
+        if (response.IsSuccess())
+            return JsonConvert.DeserializeObject<User>(response.Body);
 
-    public async Task<User?> Login()
-    {
-        throw new NotImplementedException();
+        return null;
     }
 
     public User? GetLoggedUser()
@@ -51,24 +58,40 @@ public class AuthService : IAuthService
         return _loggedUser;
     }
 
-    public Task<int> CreateUserAsync(User user)
+    public async Task<int> CreateUserAsync(User user)
     {
-        throw new NotImplementedException();
+        Response response = await _apiService.PostAsync("/api/Users", JsonContent.Create(user));
+        SnackBarService.Send(response.IsSuccess()
+            ? "Usuário cadastrado com sucesso."
+            : "Erro ao cadastrar usuário: " + response.Body);
+        return response.IsSuccess() ? 0 : 1;
     }
 
-    public Task<int> UpdateUserAsync(User user)
+    public async Task<int> UpdateUserAsync(User user)
     {
-        throw new NotImplementedException();
+        Response response = await _apiService.PutAsync($"/api/Users/{user.UserId}", JsonContent.Create(user));
+        SnackBarService.Send(response.IsSuccess()
+            ? "Usuário atualizado com sucesso."
+            : "Erro ao atualizar usuário: " + response.Body);
+        return response.IsSuccess() ? 0 : 1;
     }
 
-    public Task<int> DeleteUserAsync(Guid userId)
+    public async Task<int> DeleteUserAsync(Guid userId)
     {
-        throw new NotImplementedException();
+        Response response = await _apiService.DeleteAsync($"/api/Users/{userId}");
+        SnackBarService.Send(response.IsSuccess()
+            ? "Usuário excluído com sucesso."
+            : "Erro ao excluir usuário: " + response.Body);
+        return response.IsSuccess() ? 0 : 1;
     }
 
-    public Task<bool> ChangeUserPasswordAsync(UserChangePasswordDto userLoginDto)
+    public async Task<bool> ChangeUserPasswordAsync(UserChangePasswordDto dto)
     {
-        throw new NotImplementedException();
+        Response response = await _apiService.PostAsync("/api/Users/change-password", JsonContent.Create(dto));
+        SnackBarService.Send(response.IsSuccess()
+            ? "Senha alterada com sucesso."
+            : "Erro ao alterar senha: " + response.Body);
+        return response.IsSuccess();
     }
 
     public async Task<string> Auth(UserLoginDto userLoginDto)
@@ -95,7 +118,7 @@ public class AuthService : IAuthService
             return "Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.";
         }
     }
-    
+
     private async Task SaveUserDataAsync(User user)
     {
         try
@@ -137,16 +160,10 @@ public class AuthService : IAuthService
 
     public void Logout()
     {
-        // 1. Limpa o usuário em memória
         _loggedUser = null;
-        
-        // 2. Remove a chave de API do serviço
         _apiService.SetApiKey(null);
 
-        // 3. Deleta o arquivo de sessão para impedir o login automático
         if (File.Exists(UserDataFile))
-        {
             File.Delete(UserDataFile);
-        }
     }
 }

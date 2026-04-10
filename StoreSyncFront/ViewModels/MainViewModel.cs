@@ -1,4 +1,4 @@
-﻿﻿using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net.Http;
@@ -21,6 +21,7 @@ public partial class MainViewModel : ObservableObject
     private readonly IAuthService _authService;
     private readonly IProductService _productService;
     private readonly ICategoryService _categoryService;
+    private readonly IEmployeeService _employeeService;
     
     [ObservableProperty] 
     private string _username = string.Empty;
@@ -31,12 +32,13 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private TabItemViewModel? _selectedTab;
     
-    public MainViewModel(INavigationService navigationService, IAuthService authService, IProductService productService, ICategoryService categoryService)
+    public MainViewModel(INavigationService navigationService, IAuthService authService, IProductService productService, ICategoryService categoryService, IEmployeeService employeeService)
     {
         this._navigationService = navigationService;
         this._authService = authService;
         this._productService = productService;
         this._categoryService = categoryService;
+        this._employeeService = employeeService;
         
 
         var loggedUser = _authService.GetLoggedUser();
@@ -81,6 +83,57 @@ public partial class MainViewModel : ObservableObject
         Tabs.Add(productsTab);
         SelectedTab = productsTab;
     }
+    [RelayCommand]
+    private async Task OpenCategoriesTab()
+    {
+        var existingTab = Tabs.FirstOrDefault(t => t.Content is CategoriesViewModel);
+        if (existingTab != null)
+        {
+            SelectedTab = existingTab;
+            return;
+        }
+
+        var categoriesVm = new CategoriesViewModel(_categoryService);
+        await categoriesVm.LoadDataAsync();
+        var categoriesTab = new TabItemViewModel("Categorias", categoriesVm, true, CloseTab);
+        Tabs.Add(categoriesTab);
+        SelectedTab = categoriesTab;
+    }
+
+    [RelayCommand]
+    private async Task OpenEmployeesTab()
+    {
+        var existingTab = Tabs.FirstOrDefault(t => t.Content is EmployeesViewModel);
+        if (existingTab != null)
+        {
+            SelectedTab = existingTab;
+            return;
+        }
+
+        var employeesVm = new EmployeesViewModel(_employeeService);
+        await employeesVm.LoadDataAsync();
+        var employeesTab = new TabItemViewModel("Funcionários", employeesVm, true, CloseTab);
+        Tabs.Add(employeesTab);
+        SelectedTab = employeesTab;
+    }
+
+    [RelayCommand]
+    private async Task OpenUsersTab()
+    {
+        var existingTab = Tabs.FirstOrDefault(t => t.Content is UsersViewModel);
+        if (existingTab != null)
+        {
+            SelectedTab = existingTab;
+            return;
+        }
+
+        var usersVm = new UsersViewModel(_authService, _employeeService);
+        await usersVm.LoadDataAsync();
+        var usersTab = new TabItemViewModel("Usuários", usersVm, true, CloseTab);
+        Tabs.Add(usersTab);
+        SelectedTab = usersTab;
+    }
+
     private void CloseTab(TabItemViewModel tab)
     {
         Tabs.Remove(tab);

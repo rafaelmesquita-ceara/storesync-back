@@ -1,0 +1,33 @@
+<Window
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
+    xmlns:materialIcons="using:Material.Icons.Avalonia"
+    xmlns:p1="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
+    x:Class="StoreSyncFront.Views.AddRoleDialog"
+    Title="Novo Cargo"
+    Width="300"
+    Height="160"
+    CanResize="False"
+    ShowInTaskbar="False"
+    WindowStartupLocation="CenterOwner">
+
+    <controls:Card Margin="16">
+        <Panel>
+            <TextBox
+                x:Name="RoleNameBox"
+                p1:TextFieldAssist.Label="Cargo"
+                KeyDown="RoleNameBox_KeyDown"
+                UseFloatingWatermark="True"
+                VerticalAlignment="Top" />
+
+            <controls:FloatingButton
+                HorizontalAlignment="Right"
+                VerticalAlignment="Bottom"
+                Background="DarkGreen"
+                Click="ConfirmButton_Click">
+                <materialIcons:MaterialIcon Kind="Check" />
+            </controls:FloatingButton>
+        </Panel>
+    </controls:Card>
+</Window>

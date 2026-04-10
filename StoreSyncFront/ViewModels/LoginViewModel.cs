@@ -50,7 +50,7 @@ public partial class LoginViewModel : ObservableObject
         SnackBarService.Send(errorMessage == string.Empty ? "Login realizado com sucesso." : "Erro: " + errorMessage);
         if (errorMessage == string.Empty)
         {
-            Console.WriteLine(_authService.GetLoggedUser().UserId);
+            Console.WriteLine(_authService.GetLoggedUser()?.UserId);
             _navigationService.NavigateTo<MainViewModel>();
         }
         

@@ -31,6 +31,7 @@ public static class ServiceCollectionExtensions
         collection.AddSingleton<IAuthService, AuthService>();
         collection.AddSingleton<ICategoryService, CategoryService>();
         collection.AddSingleton<IProductService, ProductService>();
+        collection.AddSingleton<IEmployeeService, EmployeeService>();
         
         collection.AddTransient<LoginView>();
         collection.AddTransient<LoginViewModel>();

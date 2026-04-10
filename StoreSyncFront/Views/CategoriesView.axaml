@@ -1,0 +1,179 @@
+<UserControl
+    x:Class="StoreSyncFront.Views.CategoriesView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls1="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
+    xmlns:converters="using:StoreSyncFront.Utils"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:materialIcons="using:Material.Icons.Avalonia"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:p1="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
+    xmlns:vm="clr-namespace:StoreSyncFront.ViewModels"
+    x:Name="Root"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    x:DataType="vm:CategoriesViewModel"
+    mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+    </UserControl.Resources>
+
+    <controls1:Card Margin="16">
+        <Grid Margin="16" RowDefinitions="Auto, Auto, Auto, *">
+
+            <!--  Header: título + busca  -->
+            <Grid
+                Margin="0,0,0,10"
+                HorizontalAlignment="Stretch"
+                ColumnDefinitions="*, *">
+                <TextBlock
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Classes="Headline6"
+                    Text="Categorias" />
+
+                <TextBox
+                    x:Name="SearchTextBox"
+                    Grid.Column="1"
+                    HorizontalAlignment="Stretch"
+                    Classes="solo"
+                    KeyUp="SearchTextBox_KeyUp"
+                    Loaded="SearchTextBox_Loaded"
+                    Text="{Binding SearchBarField}"
+                    Theme="{StaticResource SoloTextBox}"
+                    Watermark="Buscar categoria...">
+                    <TextBox.InnerRightContent>
+                        <StackPanel
+                            HorizontalAlignment="Center"
+                            Orientation="Horizontal"
+                            Spacing="5">
+                            <Button
+                                Width="{Binding $self.Bounds.Height}"
+                                Padding="4"
+                                Classes="Flat"
+                                Command="{Binding SearchCommand}">
+                                <materialIcons:MaterialIcon
+                                    Width="24"
+                                    Height="24"
+                                    Kind="Search" />
+                            </Button>
+                            <Button
+                                Width="{Binding $self.Bounds.Height}"
+                                Padding="4"
+                                Classes="Flat"
+                                HotKey="F5"
+                                Command="{Binding RefreshCommand}">
+                                <materialIcons:MaterialIcon
+                                    Width="24"
+                                    Height="24"
+                                    Kind="Refresh" />
+                            </Button>
+                        </StackPanel>
+                    </TextBox.InnerRightContent>
+                </TextBox>
+            </Grid>
+
+            <Separator Grid.Row="1" Margin="0,0,0,10" />
+
+            <!--  Barra de nova categoria  -->
+            <Grid
+                Grid.Row="2"
+                Margin="0,0,0,10"
+                ColumnDefinitions="*, Auto">
+                <TextBox
+                    x:Name="NewCategoryBox"
+                    Grid.Column="0"
+                    p1:TextFieldAssist.Label="Nova categoria"
+                    HorizontalAlignment="Stretch"
+                    KeyDown="NewCategoryBox_KeyDown"
+                    Text="{Binding NewCategoryName}"
+                    UseFloatingWatermark="True" />
+                <Button
+                    Grid.Column="1"
+                    Margin="8,0,0,0"
+                    VerticalAlignment="Center"
+                    Classes="Flat"
+                    Command="{Binding AddCategoryCommand}"
+                    ToolTip.Tip="Adicionar (Enter)">
+                    <materialIcons:MaterialIcon
+                        Width="24"
+                        Height="24"
+                        Kind="Plus" />
+                </Button>
+            </Grid>
+
+            <!--  DataGrid com edição inline  -->
+            <DataGrid
+                x:Name="CategoriesDataGrid"
+                Grid.Row="3"
+                AutoGenerateColumns="False"
+                IsReadOnly="True"
+                ItemsSource="{Binding Categories}"
+                KeyDown="CategoriesDataGrid_KeyDown">
+                <DataGrid.Columns>
+
+                    <!--  Coluna Nome: TextBlock (leitura) ou TextBox (edição)  -->
+                    <DataGridTemplateColumn Width="4*" Header="Nome">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate DataType="vm:CategoryRowViewModel">
+                                <Panel>
+                                    <TextBlock
+                                        IsVisible="{Binding IsEditing, Converter={StaticResource InverseBooleanConverter}}"
+                                        Text="{Binding Name}"
+                                        VerticalAlignment="Center"
+                                        Margin="4,0" />
+                                    <TextBox
+                                        IsVisible="{Binding IsEditing}"
+                                        Text="{Binding DraftName}"
+                                        KeyDown="InlineEditBox_KeyDown"
+                                        LostFocus="InlineEditBox_LostFocus"
+                                        UseFloatingWatermark="False" />
+                                </Panel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTextColumn
+                        Width="2*"
+                        Binding="{Binding CreatedAt, StringFormat=\{0:dd/MM/yyyy\}}"
+                        Header="Cadastro" />
+
+                    <DataGridTemplateColumn Header="Ações">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate DataType="vm:CategoryRowViewModel">
+                                <StackPanel
+                                    HorizontalAlignment="Center"
+                                    Orientation="Horizontal"
+                                    Spacing="5">
+                                    <controls1:FloatingButton
+                                        Margin="3"
+                                        Classes="Mini"
+                                        Click="EditButton_Click"
+                                        Tag="{Binding CategoryId}"
+                                        ToolTip.Tip="Editar nome (F2)">
+                                        <materialIcons:MaterialIcon
+                                            Width="16"
+                                            Height="16"
+                                            Kind="Edit" />
+                                    </controls1:FloatingButton>
+                                    <controls1:FloatingButton
+                                        Margin="3,3,15,3"
+                                        Background="Red"
+                                        Classes="Mini"
+                                        Command="{Binding #Root.((vm:CategoriesViewModel)DataContext).DeleteCommand}"
+                                        CommandParameter="{Binding CategoryId}">
+                                        <materialIcons:MaterialIcon
+                                            Width="16"
+                                            Height="16"
+                                            Kind="Delete" />
+                                    </controls1:FloatingButton>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+    </controls1:Card>
+</UserControl>

@@ -6,7 +6,8 @@ public interface ISaleRepository
     Task<Sale?> GetSaleByIdAsync(Guid saleId);
     Task<Guid> CreateSaleAsync(Sale sale);
     Task<int> UpdateSaleAsync(Sale sale);
-    Task<int> DeleteSaleAsync(Guid saleId);
+    Task<int> FinalizeSaleAsync(Guid saleId);
+    Task<int> CancelSaleAsync(Guid saleId);
 }
 
 public interface ISaleService
@@ -15,5 +16,6 @@ public interface ISaleService
     Task<Sale?> GetSaleByIdAsync(Guid saleId);
     Task<int> CreateSaleAsync(Sale sale);
     Task<int> UpdateSaleAsync(Sale sale);
-    Task<int> DeleteSaleAsync(Guid saleId);
+    Task<int> FinalizeSaleAsync(Guid saleId);
+    Task<int> CancelSaleAsync(Guid saleId);
 }

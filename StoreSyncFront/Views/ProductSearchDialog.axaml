@@ -1,0 +1,66 @@
+<Window
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
+    xmlns:materialIcons="using:Material.Icons.Avalonia"
+    xmlns:models="clr-namespace:SharedModels;assembly=SharedModels"
+    xmlns:p1="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
+    x:Class="StoreSyncFront.Views.ProductSearchDialog"
+    Title="Buscar Produto"
+    Width="700"
+    Height="500"
+    CanResize="False"
+    ShowInTaskbar="False"
+    WindowStartupLocation="CenterOwner">
+
+    <controls:Card Margin="16">
+        <Grid RowDefinitions="Auto, *, Auto">
+
+            <TextBox
+                x:Name="SearchBox"
+                Grid.Row="0"
+                Margin="0,0,0,8"
+                Classes="solo"
+                KeyUp="SearchBox_KeyUp"
+                Theme="{StaticResource SoloTextBox}"
+                Watermark="Buscar por referência, nome ou categoria...">
+                <TextBox.InnerRightContent>
+                    <Button Width="{Binding $self.Bounds.Height}" Padding="4" Classes="Flat" Click="SearchButton_Click">
+                        <materialIcons:MaterialIcon Width="24" Height="24" Kind="Search" />
+                    </Button>
+                </TextBox.InnerRightContent>
+            </TextBox>
+
+            <DataGrid
+                x:Name="ProductsGrid"
+                Grid.Row="1"
+                AutoGenerateColumns="False"
+                IsReadOnly="True"
+                x:DataType="models:Product"
+                DoubleTapped="ProductsGrid_DoubleTapped">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Width="1.5*" Binding="{Binding Reference}" Header="Referência" x:DataType="models:Product" />
+                    <DataGridTextColumn Width="2.5*" Binding="{Binding Name}" Header="Nome" x:DataType="models:Product" />
+                    <DataGridTextColumn Width="1.5*" Binding="{Binding Category.Name}" Header="Categoria" x:DataType="models:Product" />
+                    <DataGridTextColumn Width="*" Binding="{Binding StockQuantity}" Header="Estoque" x:DataType="models:Product" />
+                    <DataGridTextColumn Width="1.2*" Binding="{Binding Price, StringFormat='{}{0:N2}'}" Header="Preço (R$)" x:DataType="models:Product" />
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <StackPanel
+                Grid.Row="2"
+                Margin="0,12,0,0"
+                HorizontalAlignment="Right"
+                Orientation="Horizontal"
+                Spacing="8">
+                <Button Classes="Outlined" Click="CancelButton_Click" Width="100">
+                    Cancelar
+                </Button>
+                <Button Classes="Raised" Background="DarkGreen" Click="ConfirmButton_Click" Width="100">
+                    Confirmar
+                </Button>
+            </StackPanel>
+
+        </Grid>
+    </controls:Card>
+</Window>

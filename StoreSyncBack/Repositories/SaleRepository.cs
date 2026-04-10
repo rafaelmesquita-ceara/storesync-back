@@ -19,8 +19,12 @@ namespace StoreSyncBack.Repositories
             var sql = @"
                 SELECT
                     s.sale_id AS SaleId,
+                    s.referencia AS Referencia,
                     s.employee_id AS EmployeeId,
+                    s.discount AS Discount,
+                    s.addition AS Addition,
                     s.total_amount AS TotalAmount,
+                    s.status AS Status,
                     s.sale_date AS SaleDate,
                     s.created_at AS CreatedAt,
                     e.employee_id AS EmployeeId,
@@ -52,8 +56,12 @@ namespace StoreSyncBack.Repositories
             var sqlSale = @"
                 SELECT
                     s.sale_id AS SaleId,
+                    s.referencia AS Referencia,
                     s.employee_id AS EmployeeId,
+                    s.discount AS Discount,
+                    s.addition AS Addition,
                     s.total_amount AS TotalAmount,
+                    s.status AS Status,
                     s.sale_date AS SaleDate,
                     s.created_at AS CreatedAt,
                     e.employee_id AS EmployeeId,
@@ -88,12 +96,15 @@ namespace StoreSyncBack.Repositories
                     si.sale_id AS SaleId,
                     si.product_id AS ProductId,
                     si.quantity AS Quantity,
+                    si.discount AS Discount,
+                    si.addition AS Addition,
                     si.total_price AS TotalPrice,
                     si.created_at AS CreatedAt,
                     p.product_id AS ProductId,
                     p.reference AS Reference,
                     p.name AS Name,
-                    p.price AS Price
+                    p.price AS Price,
+                    p.stock_quantity AS StockQuantity
                 FROM sale_item si
                 JOIN product p ON si.product_id = p.product_id
                 WHERE si.sale_id = @Id;
@@ -125,50 +136,16 @@ namespace StoreSyncBack.Repositories
             if (sale.SaleDate == default)
                 sale.SaleDate = DateTime.UtcNow;
 
-            using var transaction = _db.BeginTransaction();
+            sale.Status = SaleStatus.Aberta;
 
-            try
-            {
-                const string insertSale = @"
-                    INSERT INTO sale (sale_id, employee_id, total_amount, sale_date, created_at)
-                    VALUES (@SaleId, @EmployeeId, @TotalAmount, @SaleDate, @CreatedAt);
-                ";
+            const string insertSale = @"
+                INSERT INTO sale (sale_id, employee_id, discount, addition, total_amount, status, sale_date, created_at)
+                VALUES (@SaleId, @EmployeeId, @Discount, @Addition, @TotalAmount, @Status, @SaleDate, @CreatedAt)
+                RETURNING referencia;
+            ";
 
-                await _db.ExecuteAsync(insertSale, sale, transaction);
-
-                if (sale.Items != null && sale.Items.Count > 0)
-                {
-                    const string insertItem = @"
-                        INSERT INTO sale_item (sale_item_id, sale_id, product_id, quantity, total_price, created_at)
-                        VALUES (@SaleItemId, @SaleId, @ProductId, @Quantity, @TotalPrice, @CreatedAt);
-                    ";
-
-                    foreach (var item in sale.Items)
-                    {
-                        if (item.SaleItemId == Guid.Empty)
-                            item.SaleItemId = Guid.NewGuid();
-
-                        item.SaleId = sale.SaleId;
-
-                        if (item.CreatedAt == default)
-                            item.CreatedAt = DateTime.UtcNow;
-
-                        item.TotalPrice = item.TotalPrice == 0
-                            ? item.Quantity * (item.Product?.Price ?? 0)
-                            : item.TotalPrice;
-
-                        await _db.ExecuteAsync(insertItem, item, transaction);
-                    }
-                }
-
-                transaction.Commit();
-                return sale.SaleId;
-            }
-            catch
-            {
-                transaction.Rollback();
-                throw;
-            }
+            sale.Referencia = await _db.ExecuteScalarAsync<string>(insertSale, sale);
+            return sale.SaleId;
         }
 
         public async Task<int> UpdateSaleAsync(Sale sale)
@@ -177,20 +154,123 @@ namespace StoreSyncBack.Repositories
                 UPDATE sale
                 SET
                     employee_id = @EmployeeId,
-                    total_amount = @TotalAmount,
-                    sale_date = @SaleDate
-                WHERE sale_id = @SaleId;
+                    discount = @Discount,
+                    addition = @Addition,
+                    total_amount = @TotalAmount
+                WHERE sale_id = @SaleId AND status = @StatusAberta;
             ";
 
-            var affected = await _db.ExecuteAsync(sql, sale);
-            return affected;
+            return await _db.ExecuteAsync(sql, new
+            {
+                sale.EmployeeId,
+                sale.Discount,
+                sale.Addition,
+                sale.TotalAmount,
+                sale.SaleId,
+                StatusAberta = SaleStatus.Aberta
+            });
         }
 
-        public async Task<int> DeleteSaleAsync(Guid saleId)
+        public async Task<int> FinalizeSaleAsync(Guid saleId)
         {
-            var sql = "DELETE FROM sale WHERE sale_id = @Id;";
-            var affected = await _db.ExecuteAsync(sql, new { Id = saleId });
-            return affected;
+            if (_db.State != ConnectionState.Open)
+                _db.Open();
+
+            using var transaction = _db.BeginTransaction();
+
+            try
+            {
+                var sale = (await _db.QueryAsync<Sale>(
+                    "SELECT sale_id AS SaleId, status AS Status FROM sale WHERE sale_id = @Id;",
+                    new { Id = saleId }, transaction)).FirstOrDefault();
+
+                if (sale == null)
+                    throw new ArgumentException("Venda não encontrada.");
+                if (sale.Status != SaleStatus.Aberta)
+                    throw new InvalidOperationException("Apenas vendas em aberto podem ser finalizadas.");
+
+                var items = await _db.QueryAsync<SaleItem>(
+                    @"SELECT sale_item_id AS SaleItemId, product_id AS ProductId, quantity AS Quantity
+                      FROM sale_item WHERE sale_id = @Id;",
+                    new { Id = saleId }, transaction);
+
+                var itemList = items.ToList();
+                if (itemList.Count == 0)
+                    throw new InvalidOperationException("A venda deve conter pelo menos um item para ser finalizada.");
+
+                foreach (var item in itemList)
+                {
+                    var stock = await _db.ExecuteScalarAsync<int>(
+                        "SELECT stock_quantity FROM product WHERE product_id = @Id;",
+                        new { Id = item.ProductId }, transaction);
+
+                    if (item.Quantity > stock)
+                        throw new InvalidOperationException($"Estoque insuficiente para o produto {item.ProductId}.");
+
+                    await _db.ExecuteAsync(
+                        "UPDATE product SET stock_quantity = stock_quantity - @Qty WHERE product_id = @Id;",
+                        new { Qty = item.Quantity, Id = item.ProductId }, transaction);
+                }
+
+                var affected = await _db.ExecuteAsync(
+                    "UPDATE sale SET status = @Status WHERE sale_id = @Id;",
+                    new { Status = SaleStatus.Finalizada, Id = saleId }, transaction);
+
+                transaction.Commit();
+                return affected;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
+
+        public async Task<int> CancelSaleAsync(Guid saleId)
+        {
+            if (_db.State != ConnectionState.Open)
+                _db.Open();
+
+            using var transaction = _db.BeginTransaction();
+
+            try
+            {
+                var sale = (await _db.QueryAsync<Sale>(
+                    "SELECT sale_id AS SaleId, status AS Status FROM sale WHERE sale_id = @Id;",
+                    new { Id = saleId }, transaction)).FirstOrDefault();
+
+                if (sale == null)
+                    throw new ArgumentException("Venda não encontrada.");
+                if (sale.Status == SaleStatus.Cancelada)
+                    throw new InvalidOperationException("Esta venda já está cancelada.");
+
+                if (sale.Status == SaleStatus.Finalizada)
+                {
+                    var items = await _db.QueryAsync<SaleItem>(
+                        @"SELECT sale_item_id AS SaleItemId, product_id AS ProductId, quantity AS Quantity
+                          FROM sale_item WHERE sale_id = @Id;",
+                        new { Id = saleId }, transaction);
+
+                    foreach (var item in items)
+                    {
+                        await _db.ExecuteAsync(
+                            "UPDATE product SET stock_quantity = stock_quantity + @Qty WHERE product_id = @Id;",
+                            new { Qty = item.Quantity, Id = item.ProductId }, transaction);
+                    }
+                }
+
+                var affected = await _db.ExecuteAsync(
+                    "UPDATE sale SET status = @Status WHERE sale_id = @Id;",
+                    new { Status = SaleStatus.Cancelada, Id = saleId }, transaction);
+
+                transaction.Commit();
+                return affected;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
         }
     }
 }

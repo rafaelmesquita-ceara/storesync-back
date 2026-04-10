@@ -1,0 +1,304 @@
+<UserControl
+    x:Class="StoreSyncFront.Views.FinancesView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:StoreSyncFront.Controls"
+    xmlns:controls1="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
+    xmlns:converters="using:StoreSyncFront.Utils"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:materialIcons="using:Material.Icons.Avalonia"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:p1="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
+    xmlns:vm="clr-namespace:StoreSyncFront.ViewModels"
+    x:Name="Root"
+    d:DesignHeight="500"
+    d:DesignWidth="860"
+    x:DataType="vm:FinancesViewModel"
+    mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+    </UserControl.Resources>
+
+    <controls1:Card Margin="16">
+        <Grid Margin="16" RowDefinitions="Auto, Auto, *">
+
+            <!--  Header  -->
+            <Grid
+                Margin="0,0,0,10"
+                HorizontalAlignment="Stretch"
+                ColumnDefinitions="*, *">
+
+                <!--  Título  -->
+                <TextBlock
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Classes="Headline6"
+                    Text="{Binding Title}" />
+
+                <!--  Busca (modo lista)  -->
+                <TextBox
+                    x:Name="SearchTextBox"
+                    Grid.Column="1"
+                    HorizontalAlignment="Stretch"
+                    Classes="solo"
+                    IsVisible="{Binding IsEdit, Converter={StaticResource InverseBooleanConverter}}"
+                    KeyUp="SearchTextBox_KeyUp"
+                    Loaded="SearchTextBox_Loaded"
+                    Text="{Binding SearchBarField}"
+                    Theme="{StaticResource SoloTextBox}"
+                    Watermark="Buscar...">
+                    <TextBox.InnerRightContent>
+                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="5">
+                            <Button Width="{Binding $self.Bounds.Height}" Padding="4" Classes="Flat" Command="{Binding SearchCommand}">
+                                <materialIcons:MaterialIcon Width="24" Height="24" Kind="Search" />
+                            </Button>
+                            <Button Width="{Binding $self.Bounds.Height}" Padding="4" Classes="Flat" HotKey="F5" Command="{Binding RefreshCommand}">
+                                <materialIcons:MaterialIcon Width="24" Height="24" Kind="Refresh" />
+                            </Button>
+                        </StackPanel>
+                    </TextBox.InnerRightContent>
+                </TextBox>
+
+                <!--  Botão Ações + dropdown (modo formulário: edição ou visualização)  -->
+                <StackPanel
+                    Grid.Column="1"
+                    HorizontalAlignment="Right"
+                    IsVisible="{Binding IsEdit}"
+                    Orientation="Vertical"
+                    Spacing="4">
+
+                    <Button
+                        HorizontalAlignment="Right"
+                        Classes="Outlined"
+                        Command="{Binding ToggleActionsCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock VerticalAlignment="Center" Text="Ações" />
+                            <materialIcons:MaterialIcon
+                                Width="16" Height="16"
+                                IsVisible="{Binding IsActionsExpanded, Converter={StaticResource InverseBooleanConverter}}"
+                                Kind="ChevronDown" />
+                            <materialIcons:MaterialIcon
+                                Width="16" Height="16"
+                                IsVisible="{Binding IsActionsExpanded}"
+                                Kind="ChevronUp" />
+                        </StackPanel>
+                    </Button>
+
+                    <Border
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        IsVisible="{Binding IsActionsExpanded}"
+                        Opacity="0.95"
+                        Padding="4"
+                        ZIndex="10">
+                        <StackPanel Spacing="2">
+                            <!--  Liquidar: visível apenas em modo de edição (conta em aberto)  -->
+                            <Button
+                                Classes="Flat"
+                                Click="LiquidarButton_Click"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Left"
+                                IsEnabled="{Binding CanSettle}"
+                                IsVisible="{Binding IsViewOnly, Converter={StaticResource InverseBooleanConverter}}">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <materialIcons:MaterialIcon Width="16" Height="16" Kind="CashCheck" />
+                                    <TextBlock Text="Liquidar" />
+                                </StackPanel>
+                            </Button>
+                            <!--  Cancelar Liquidação: visível em modo de visualização  -->
+                            <Button
+                                Classes="Flat"
+                                Click="CancelarLiquidacaoButton_Click"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Left"
+                                IsEnabled="{Binding CanCancelSettle}">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <materialIcons:MaterialIcon Width="16" Height="16" Kind="Cancel" />
+                                    <TextBlock Text="Cancelar Liquidação" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+
+            <Separator Grid.Row="1" Margin="0,0,0,10" />
+
+            <!--  Conteúdo  -->
+            <Panel Grid.Row="2">
+
+                <!--  Lista  -->
+                <Grid IsVisible="{Binding IsEdit, Converter={StaticResource InverseBooleanConverter}}">
+                    <RefreshContainer PullDirection="TopToBottom" RefreshRequested="RefreshContainer_RefreshRequested">
+                        <DataGrid
+                            x:Name="FinancesDataGrid"
+                            AutoGenerateColumns="False"
+                            IsReadOnly="True"
+                            ItemsSource="{Binding Finances}"
+                            KeyDown="FinancesDataGrid_KeyDown">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn
+                                    Width="1.5*"
+                                    Binding="{Binding Reference}"
+                                    Header="Referência" />
+                                <DataGridTextColumn
+                                    Width="3*"
+                                    Binding="{Binding Description}"
+                                    Header="Descrição" />
+                                <DataGridTextColumn
+                                    Width="1.5*"
+                                    Binding="{Binding DueDate, StringFormat='{}{0:dd/MM/yyyy}'}"
+                                    Header="Vencimento" />
+                                <DataGridTextColumn
+                                    Width="1.5*"
+                                    Binding="{Binding Amount, StringFormat='{}{0:N2}'}"
+                                    Header="Valor (R$)" />
+                                <DataGridTextColumn
+                                    Width="*"
+                                    Binding="{Binding TitleTypeLabel}"
+                                    Header="Tipo" />
+                                <DataGridTextColumn
+                                    Width="1.5*"
+                                    Binding="{Binding StatusLabel}"
+                                    Header="Situação" />
+                                <DataGridTemplateColumn Header="Ações">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="5">
+                                                <!--  Visualizar (olho) — sempre disponível  -->
+                                                <controls1:FloatingButton
+                                                    Margin="3"
+                                                    Classes="Mini"
+                                                    Command="{Binding #Root.((vm:FinancesViewModel)DataContext).OpenViewCommand}"
+                                                    CommandParameter="{Binding FinanceId}"
+                                                    ToolTip.Tip="Visualizar">
+                                                    <materialIcons:MaterialIcon Width="16" Height="16" Kind="Eye" />
+                                                </controls1:FloatingButton>
+                                                <!--  Editar — apenas contas em aberto  -->
+                                                <controls1:FloatingButton
+                                                    Margin="3"
+                                                    Classes="Mini"
+                                                    Command="{Binding #Root.((vm:FinancesViewModel)DataContext).OpenEditCommand}"
+                                                    CommandParameter="{Binding FinanceId}"
+                                                    ToolTip.Tip="Editar">
+                                                    <materialIcons:MaterialIcon Width="16" Height="16" Kind="Edit" />
+                                                </controls1:FloatingButton>
+                                                <!--  Excluir  -->
+                                                <controls1:FloatingButton
+                                                    Margin="3,3,15,3"
+                                                    Background="Red"
+                                                    Classes="Mini"
+                                                    Command="{Binding #Root.((vm:FinancesViewModel)DataContext).DeleteCommand}"
+                                                    CommandParameter="{Binding FinanceId}"
+                                                    ToolTip.Tip="Excluir">
+                                                    <materialIcons:MaterialIcon Width="16" Height="16" Kind="Delete" />
+                                                </controls1:FloatingButton>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </RefreshContainer>
+
+                    <controls1:FloatingButton
+                        Margin="24"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        Background="DarkGreen"
+                        Command="{Binding ToggleEditCommand}"
+                        HotKey="F1">
+                        <materialIcons:MaterialIcon Kind="Plus" />
+                    </controls1:FloatingButton>
+                </Grid>
+
+                <!--  Formulário (edição e visualização)  -->
+                <Grid IsVisible="{Binding IsEdit}">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="0,0,0,80">
+
+                            <!--  Campos editáveis (desabilitados no modo visualização)  -->
+                            <TextBox
+                                p1:TextFieldAssist.Hints="{Binding (DataValidationErrors.Errors)}"
+                                p1:TextFieldAssist.Label="Referência"
+                                IsEnabled="{Binding IsViewOnly, Converter={StaticResource InverseBooleanConverter}}"
+                                Text="{Binding Reference}"
+                                UseFloatingWatermark="True" />
+                            <TextBox
+                                p1:TextFieldAssist.Hints="{Binding (DataValidationErrors.Errors)}"
+                                p1:TextFieldAssist.Label="Descrição"
+                                IsEnabled="{Binding IsViewOnly, Converter={StaticResource InverseBooleanConverter}}"
+                                Text="{Binding Description}"
+                                UseFloatingWatermark="True" />
+                            <TextBox
+                                p1:TextFieldAssist.Hints="{Binding (DataValidationErrors.Errors)}"
+                                p1:TextFieldAssist.Label="Valor (R$)"
+                                IsEnabled="{Binding IsViewOnly, Converter={StaticResource InverseBooleanConverter}}"
+                                Text="{Binding Amount}"
+                                UseFloatingWatermark="True" />
+                            <DatePicker
+                                HorizontalAlignment="Stretch"
+                                IsEnabled="{Binding IsViewOnly, Converter={StaticResource InverseBooleanConverter}}"
+                                SelectedDate="{Binding DueDate}"
+                                p1:TextFieldAssist.Label="Vencimento" />
+
+                            <!--  Seção de liquidação (visível somente no modo visualização)  -->
+                            <StackPanel IsVisible="{Binding HasSettlementInfo}" Margin="0,16,0,0" Spacing="0">
+                                <Separator Margin="0,0,0,12" />
+                                <TextBlock
+                                    Margin="0,0,0,8"
+                                    Classes="Body2"
+                                    Opacity="0.6"
+                                    Text="Informações de Liquidação" />
+                                <TextBox
+                                    p1:TextFieldAssist.Label="Valor Liquidado (R$)"
+                                    IsEnabled="False"
+                                    Text="{Binding SettledAmountDisplay}"
+                                    UseFloatingWatermark="True" />
+                                <TextBox
+                                    p1:TextFieldAssist.Label="Data da Liquidação"
+                                    IsEnabled="False"
+                                    Text="{Binding SettledAtDisplay}"
+                                    UseFloatingWatermark="True" />
+                                <TextBox
+                                    p1:TextFieldAssist.Label="Observação"
+                                    AcceptsReturn="True"
+                                    Height="80"
+                                    IsEnabled="False"
+                                    Text="{Binding SettledNoteDisplay}"
+                                    TextWrapping="Wrap"
+                                    UseFloatingWatermark="True"
+                                    VerticalContentAlignment="Top" />
+                            </StackPanel>
+
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!--  Botão Fechar (sempre visível no formulário)  -->
+                    <controls1:FloatingButton
+                        Margin="24,24,96,24"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        Background="DarkRed"
+                        Command="{Binding ClearFormCommand}"
+                        HotKey="Escape">
+                        <materialIcons:MaterialIcon Kind="Close" />
+                    </controls1:FloatingButton>
+
+                    <!--  Botão Salvar (oculto no modo visualização)  -->
+                    <controls1:FloatingButton
+                        Margin="24"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        Background="DarkGreen"
+                        Command="{Binding SaveCommand}"
+                        HotKey="Enter"
+                        IsVisible="{Binding IsViewOnly, Converter={StaticResource InverseBooleanConverter}}">
+                        <materialIcons:MaterialIcon Kind="Check" />
+                    </controls1:FloatingButton>
+                </Grid>
+            </Panel>
+        </Grid>
+    </controls1:Card>
+</UserControl>

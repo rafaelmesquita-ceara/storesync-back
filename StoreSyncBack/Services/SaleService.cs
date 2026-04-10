@@ -30,14 +30,8 @@ namespace StoreSyncBack.Services
             if (sale.EmployeeId == Guid.Empty)
                 throw new ArgumentException("EmployeeId é obrigatório.", nameof(sale.EmployeeId));
 
-            if (sale.Items == null || sale.Items.Count == 0)
-                throw new ArgumentException("A venda deve conter pelo menos um item.", nameof(sale.Items));
-
-            // Calcula total automaticamente, se necessário
-            sale.TotalAmount = sale.Items.Sum(i =>
-                i.TotalPrice > 0
-                    ? i.TotalPrice
-                    : i.Quantity * (i.Product?.Price ?? 0));
+            sale.TotalAmount = 0;
+            sale.Status = SaleStatus.Aberta;
 
             await _repo.CreateSaleAsync(sale);
             return 1;
@@ -51,15 +45,29 @@ namespace StoreSyncBack.Services
             if (sale.SaleId == Guid.Empty)
                 throw new ArgumentException("SaleId inválido.", nameof(sale.SaleId));
 
+            var existing = await _repo.GetSaleByIdAsync(sale.SaleId);
+            if (existing == null)
+                throw new ArgumentException("Venda não encontrada.");
+            if (existing.Status != SaleStatus.Aberta)
+                throw new InvalidOperationException("Apenas vendas em aberto podem ser editadas.");
+
             return await _repo.UpdateSaleAsync(sale);
         }
 
-        public Task<int> DeleteSaleAsync(Guid saleId)
+        public async Task<int> FinalizeSaleAsync(Guid saleId)
         {
             if (saleId == Guid.Empty)
                 throw new ArgumentException("SaleId inválido.", nameof(saleId));
 
-            return _repo.DeleteSaleAsync(saleId);
+            return await _repo.FinalizeSaleAsync(saleId);
+        }
+
+        public async Task<int> CancelSaleAsync(Guid saleId)
+        {
+            if (saleId == Guid.Empty)
+                throw new ArgumentException("SaleId inválido.", nameof(saleId));
+
+            return await _repo.CancelSaleAsync(saleId);
         }
     }
 }

@@ -18,8 +18,14 @@ namespace StoreSyncBack.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] int? type)
         {
+            if (type.HasValue)
+            {
+                var filtered = await _service.GetAllByTypeAsync(type.Value);
+                return Ok(filtered);
+            }
+
             var list = await _service.GetAllFinanceAsync();
             return Ok(list);
         }
@@ -88,10 +94,15 @@ namespace StoreSyncBack.Controllers
                 if (affected <= 0) return NotFound();
                 return NoContent();
             }
-            catch (ArgumentException ex)
+            catch (InvalidOperationException ex)
             {
-                _logger.LogWarning(ex, "Validação DeleteFinance inválida");
+                _logger.LogWarning(ex, "Operação inválida ao deletar finance");
                 return BadRequest(ex.Message);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning(ex, "Finance não encontrado ao deletar");
+                return NotFound(ex.Message);
             }
             catch (Exception ex)
             {
@@ -99,5 +110,71 @@ namespace StoreSyncBack.Controllers
                 return StatusCode(500, "Erro interno.");
             }
         }
+
+        [HttpPost("{id:guid}/settle")]
+        public async Task<IActionResult> Settle(Guid id, [FromBody] SettleRequest request)
+        {
+            try
+            {
+                await _service.SettleAsync(id, request.SettledAmount, request.Note);
+                return NoContent();
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Validação Settle inválida");
+                return BadRequest(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Operação inválida ao liquidar finance");
+                return BadRequest(ex.Message);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning(ex, "Finance não encontrado ao liquidar");
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao liquidar registro financeiro");
+                return StatusCode(500, "Erro interno.");
+            }
+        }
+
+        [HttpDelete("{id:guid}/settle")]
+        public async Task<IActionResult> CancelSettlement(Guid id)
+        {
+            try
+            {
+                await _service.CancelSettlementAsync(id);
+                return NoContent();
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Validação CancelSettlement inválida");
+                return BadRequest(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Operação inválida ao cancelar liquidação");
+                return BadRequest(ex.Message);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning(ex, "Finance não encontrado ao cancelar liquidação");
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao cancelar liquidação");
+                return StatusCode(500, "Erro interno.");
+            }
+        }
+    }
+
+    public class SettleRequest
+    {
+        public decimal SettledAmount { get; set; }
+        public string? Note { get; set; }
     }
 }

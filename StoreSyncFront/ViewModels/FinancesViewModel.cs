@@ -115,7 +115,7 @@ public partial class FinancesViewModel : ObservableValidator
 
         if (vm.Status != FinanceStatus.Aberto)
         {
-            StoreSyncFront.Services.SnackBarService.Send("Apenas contas em aberto podem ser editadas.");
+            StoreSyncFront.Services.SnackBarService.SendWarning("Apenas contas em aberto podem ser editadas.");
             return;
         }
 
@@ -123,7 +123,7 @@ public partial class FinancesViewModel : ObservableValidator
         Reference         = vm.Reference ?? string.Empty;
         Description       = vm.Description ?? string.Empty;
         Amount            = vm.Amount.ToString(CultureInfo.CurrentCulture);
-        DueDate           = vm.DueDate == default ? null : new DateTimeOffset(vm.DueDate, TimeSpan.Zero);
+        DueDate           = vm.DueDate == default ? null : new DateTimeOffset(vm.DueDate);
         SelectedStatus    = vm.Status;
         IsViewOnly        = false;
         IsActionsExpanded = false;
@@ -141,7 +141,7 @@ public partial class FinancesViewModel : ObservableValidator
         Reference      = vm.Reference ?? string.Empty;
         Description    = vm.Description ?? string.Empty;
         Amount         = vm.Amount.ToString("N2", CultureInfo.CurrentCulture);
-        DueDate        = vm.DueDate == default ? null : new DateTimeOffset(vm.DueDate, TimeSpan.Zero);
+        DueDate        = vm.DueDate == default ? null : new DateTimeOffset(vm.DueDate);
         SelectedStatus = vm.Status;
 
         HasSettlementInfo     = vm.SettledAmount.HasValue;

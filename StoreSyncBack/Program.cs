@@ -12,6 +12,7 @@ using System.Security.Claims;
 using Serilog;
 using Serilog.Events;
 using Serilog.Filters;
+using Serilog.Enrichers;
 
 // ── Bootstrap logger (usado antes do host estar pronto) ──────────────────────
 Log.Logger = new LoggerConfiguration()
@@ -25,11 +26,14 @@ var services = builder.Services;
 
 // ── Serilog ──────────────────────────────────────────────────────────────────
 builder.Host.UseSerilog((ctx, lc) => lc
-    .MinimumLevel.Information()
+    .ReadFrom.Configuration(ctx.Configuration)
     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
     .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
     .MinimumLevel.Override("System", LogEventLevel.Warning)
     .Enrich.FromLogContext()
+    .Enrich.WithMachineName()
+    .Enrich.WithThreadId()
+    .Enrich.WithEnvironmentName()
 
     // Console: todos os logs
     .WriteTo.Console(
@@ -41,7 +45,7 @@ builder.Host.UseSerilog((ctx, lc) => lc
         restrictedToMinimumLevel: LogEventLevel.Warning,
         rollingInterval: RollingInterval.Day,
         retainedFileCountLimit: 30,
-        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {SourceContext} {Message:lj}{NewLine}{Exception}")
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] [{MachineName}] [{ThreadId}] {SourceContext} {Message:lj}{NewLine}{Exception}")
 
     // Arquivo de requests/responses (sub-logger filtrado por source) — todos os levels
     .WriteTo.Logger(lc => lc
@@ -114,6 +118,12 @@ services.AddScoped<StoreSyncBack.Services.SalesPdfReportService>();
 
 services.AddScoped<IClientRepository, StoreSyncBack.Repositories.ClientRepository>();
 services.AddScoped<IClientService, StoreSyncBack.Services.ClientService>();
+
+services.AddScoped<IPaymentMethodRepository, StoreSyncBack.Repositories.PaymentMethodRepository>();
+services.AddScoped<IPaymentMethodService, StoreSyncBack.Services.PaymentMethodService>();
+
+services.AddScoped<ISalePaymentRepository, StoreSyncBack.Repositories.SalePaymentRepository>();
+services.AddScoped<ISalePaymentService, StoreSyncBack.Services.SalePaymentService>();
 
 services.AddScoped<IUserRepository, StoreSyncBack.Repositories.UserRepository>();
 services.AddScoped<IUserService, StoreSyncBack.Services.UserService>();

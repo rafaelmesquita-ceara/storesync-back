@@ -17,7 +17,7 @@ public class CategoryService(IApiService apiService) : ICategoryService
         if (response.IsSuccess())
             return JsonConvert.DeserializeObject<PaginatedResult<Category>>(response.Body) ?? new PaginatedResult<Category>();
 
-        SnackBarService.Send("Erro ao buscar categorias:" + response.Body);
+        SnackBarService.SendError("Erro ao buscar categorias:" + response.Body);
         return new PaginatedResult<Category> { Items = new List<Category>() };
     }
 
@@ -27,28 +27,37 @@ public class CategoryService(IApiService apiService) : ICategoryService
         if (response.IsSuccess())
             return JsonConvert.DeserializeObject<Category>(response.Body);
 
-        SnackBarService.Send("Erro ao buscar a categoria: " + response.Body);
+        SnackBarService.SendError("Erro ao buscar a categoria: " + response.Body);
         return null;
     }
 
     public async Task<int> CreateCategoryAsync(Category category)
     {
         Response response = await apiService.PostAsync($"/api/Categories", JsonContent.Create(category));
-        SnackBarService.Send(response.IsSuccess() ? "Categoria inserida com sucesso." : "Erro ao inserir categoria: " + response.Body);
+        if (response.IsSuccess())
+            SnackBarService.SendSuccess("Categoria inserida com sucesso." );
+        else
+            SnackBarService.SendError("Erro ao inserir categoria: " + response.Body);
         return response.IsSuccess() ? 0 : 1;
     }
 
     public async Task<int> UpdateCategoryAsync(Category category)
     {
         Response response = await apiService.PutAsync($"/api/Categories/{category.CategoryId}", JsonContent.Create(category));
-        SnackBarService.Send(response.IsSuccess() ? "Categoria atualizada com sucesso." : "Erro ao atualizar categoria: " + response.Body);
+        if (response.IsSuccess())
+            SnackBarService.SendSuccess("Categoria atualizada com sucesso." );
+        else
+            SnackBarService.SendError("Erro ao atualizar categoria: " + response.Body);
         return response.IsSuccess() ? 0 : 1;
     }
 
     public async Task<int> DeleteCategoryAsync(Guid categoryId)
     {
         Response response = await apiService.DeleteAsync($"/api/Categories/{categoryId}");
-        SnackBarService.Send(response.IsSuccess() ? "Categoria excluída com sucesso." : "Erro ao excluir categoria: " + response.Body);
+        if (response.IsSuccess())
+            SnackBarService.SendSuccess("Categoria excluída com sucesso." );
+        else
+            SnackBarService.SendError("Erro ao excluir categoria: " + response.Body);
         return response.IsSuccess() ? 0 : 1;
     }
 }

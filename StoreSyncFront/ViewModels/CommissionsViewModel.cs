@@ -122,8 +122,8 @@ public partial class CommissionsViewModel : ObservableObject
         _editingCommissionId = vm.CommissionId;
         Reference            = vm.Reference;
         SelectedEmployee     = Employees.FirstOrDefault(e => e.EmployeeId == vm.Model.EmployeeId);
-        StartDate            = new DateTimeOffset(vm.StartDate, TimeSpan.Zero);
-        EndDate              = new DateTimeOffset(vm.EndDate, TimeSpan.Zero);
+        StartDate            = new DateTimeOffset(vm.StartDate);
+        EndDate              = new DateTimeOffset(vm.EndDate);
         Observation          = vm.Observation ?? string.Empty;
 
         TotalSalesDisplay      = vm.TotalSales.ToString("N2", CultureInfo.CurrentCulture);
@@ -147,31 +147,31 @@ public partial class CommissionsViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(Reference))
         {
-            StoreSyncFront.Services.SnackBarService.Send("Informe a referência da comissão.");
+            StoreSyncFront.Services.SnackBarService.SendWarning("Informe a referência da comissão.");
             return;
         }
 
         if (SelectedEmployee == null)
         {
-            StoreSyncFront.Services.SnackBarService.Send("Selecione um funcionário.");
+            StoreSyncFront.Services.SnackBarService.SendWarning("Selecione um funcionário.");
             return;
         }
 
         if (StartDate == null)
         {
-            StoreSyncFront.Services.SnackBarService.Send("Informe a data inicial.");
+            StoreSyncFront.Services.SnackBarService.SendWarning("Informe a data inicial.");
             return;
         }
 
         if (EndDate == null)
         {
-            StoreSyncFront.Services.SnackBarService.Send("Informe a data final.");
+            StoreSyncFront.Services.SnackBarService.SendWarning("Informe a data final.");
             return;
         }
 
         if (StartDate.Value.DateTime > EndDate.Value.DateTime)
         {
-            StoreSyncFront.Services.SnackBarService.Send("Data inicial não pode ser maior que a data final.");
+            StoreSyncFront.Services.SnackBarService.SendWarning("Data inicial não pode ser maior que a data final.");
             return;
         }
 

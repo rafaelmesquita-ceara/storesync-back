@@ -1,45 +1,28 @@
-# Controle Financeiro — Contas a Pagar / Receber
+# Financeiro — Contas a Pagar/Receber
 
 ## Entidade: Finance
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| FinanceId | Guid | PK |
-| Reference | string | Referência/código visual |
-| Description | string | Descrição do lançamento |
-| Amount | decimal | Valor do título |
-| DueDate | DateTime | Data de vencimento |
-| Status | int | 1=Aberto, 2=Liquidado, 3=LiquidadoParcialmente |
-| Type | int | 1=Pagar, 2=Receber |
-| TitleType | int | 1=Original, 2=Residual |
-| SettledAmount | decimal? | Valor liquidado |
-| SettledAt | DateTime? | Data da liquidação |
-| SettledNote | string? | Observação da liquidação |
-| ParentId | Guid? | FK para o título original (só em residuais) |
-| CreatedAt | DateTime | Data de criação |
+`FinanceId (Guid PK)`, `Reference`, `Description`, `Amount (>0)`, `DueDate`, `Status (1=Aberto 2=Liquidado 3=LiquidadoParcialmente)`, `Type (1=Pagar 2=Receber)`, `TitleType (1=Original 2=Residual)`, `SettledAmount?`, `SettledAt?`, `SettledNote?`, `ParentId? (FK título original)`, `CreatedAt`
 
 ## Endpoints
 
-| Método | Rota | Descrição |
-|---|---|---|
-| GET | `/api/Finance` | Lista todos os títulos |
-| GET | `/api/Finance?type={1\|2}` | Filtra por tipo |
-| GET | `/api/Finance/{id}` | Busca por ID |
-| POST | `/api/Finance` | Cria título |
-| PUT | `/api/Finance/{id}` | Atualiza título |
-| DELETE | `/api/Finance/{id}` | Remove (apenas Status=Aberto) |
-| POST | `/api/Finance/{id}/settle` | Liquida título `{ settledAmount, note }` |
-| DELETE | `/api/Finance/{id}/settle` | Cancela liquidação |
+| Método | Rota |
+|---|---|
+| GET | `/api/Finance` / `/api/Finance?type={1\|2}` |
+| GET | `/api/Finance/{id}` |
+| POST | `/api/Finance` |
+| PUT | `/api/Finance/{id}` |
+| DELETE | `/api/Finance/{id}` — só Status=Aberto |
+| POST | `/api/Finance/{id}/settle` — `{ settledAmount, note }` |
+| DELETE | `/api/Finance/{id}/settle` — cancela liquidação |
 
-## Regras de negócio
+## Regras
 
-- `Amount` > 0; `Description` e `DueDate` obrigatórios; Status padrão: `1` (Aberto)
-- Apenas títulos **Abertos** podem ser excluídos
-- `SettledAmount` ≤ `Amount`
-- `SettledAmount == Amount` → Status `2` (Liquidado)
-- `SettledAmount < Amount` → Status `3` (LiquidadoParcialmente) + gera título **Residual** com o valor restante
-- Cancelar liquidação de status `3` só é permitido se o título **Residual** associado já foi excluído
+- Só exclui títulos Abertos
+- `SettledAmount == Amount` → Status 2 (Liquidado)
+- `SettledAmount < Amount` → Status 3 + gera Residual com valor restante
+- Cancelar liquidação de status 3: só se Residual associado já foi excluído
 
-## Frontend (Avalonia)
+## Frontend
 
-Telas "Contas a Pagar" e "Contas a Receber" compartilham `FinancesView` + `FinancesViewModel`, parametrizados por `FinanceType`. Botão **Ações** expande dropdown com **Liquidar** / **Cancelar Liquidação** conforme o status atual.
+Telas "Contas a Pagar" e "Contas a Receber" compartilham `FinancesView`/`FinancesViewModel` parametrizados por `FinanceType`. Botão **Ações** expande dropdown com Liquidar/Cancelar Liquidação. Paginação: 50/página com `CurrentPage`, `TotalPages`, `CanPreviousPage`, `CanNextPage`.

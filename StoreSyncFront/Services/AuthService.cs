@@ -29,7 +29,7 @@ public class AuthService : IAuthService
         if (response.IsSuccess())
             return JsonConvert.DeserializeObject<PaginatedResult<User>>(response.Body) ?? new PaginatedResult<User>();
 
-        SnackBarService.Send("Erro ao buscar usuários: " + response.Body);
+        SnackBarService.SendError("Erro ao buscar usuários: " + response.Body);
         return new PaginatedResult<User> { Items = new List<User>() };
     }
 
@@ -39,7 +39,7 @@ public class AuthService : IAuthService
         if (response.IsSuccess())
             return JsonConvert.DeserializeObject<User>(response.Body);
 
-        SnackBarService.Send("Erro ao buscar usuário: " + response.Body);
+        SnackBarService.SendError("Erro ao buscar usuário: " + response.Body);
         return null;
     }
 
@@ -61,36 +61,44 @@ public class AuthService : IAuthService
     public async Task<int> CreateUserAsync(User user)
     {
         Response response = await _apiService.PostAsync("/api/Users", JsonContent.Create(user));
-        SnackBarService.Send(response.IsSuccess()
-            ? "Usuário cadastrado com sucesso."
-            : "Erro ao cadastrar usuário: " + response.Body);
+        if (response.IsSuccess())
+            SnackBarService.SendSuccess("Usuário cadastrado com sucesso."
+            );
+        else
+            SnackBarService.SendError("Erro ao cadastrar usuário: " + response.Body);
         return response.IsSuccess() ? 0 : 1;
     }
 
     public async Task<int> UpdateUserAsync(User user)
     {
         Response response = await _apiService.PutAsync($"/api/Users/{user.UserId}", JsonContent.Create(user));
-        SnackBarService.Send(response.IsSuccess()
-            ? "Usuário atualizado com sucesso."
-            : "Erro ao atualizar usuário: " + response.Body);
+        if (response.IsSuccess())
+            SnackBarService.SendSuccess("Usuário atualizado com sucesso."
+            );
+        else
+            SnackBarService.SendError("Erro ao atualizar usuário: " + response.Body);
         return response.IsSuccess() ? 0 : 1;
     }
 
     public async Task<int> DeleteUserAsync(Guid userId)
     {
         Response response = await _apiService.DeleteAsync($"/api/Users/{userId}");
-        SnackBarService.Send(response.IsSuccess()
-            ? "Usuário excluído com sucesso."
-            : "Erro ao excluir usuário: " + response.Body);
+        if (response.IsSuccess())
+            SnackBarService.SendSuccess("Usuário excluído com sucesso."
+            );
+        else
+            SnackBarService.SendError("Erro ao excluir usuário: " + response.Body);
         return response.IsSuccess() ? 0 : 1;
     }
 
     public async Task<bool> ChangeUserPasswordAsync(UserChangePasswordDto dto)
     {
         Response response = await _apiService.PostAsync("/api/Users/change-password", JsonContent.Create(dto));
-        SnackBarService.Send(response.IsSuccess()
-            ? "Senha alterada com sucesso."
-            : "Erro ao alterar senha: " + response.Body);
+        if (response.IsSuccess())
+            SnackBarService.SendSuccess("Senha alterada com sucesso."
+            );
+        else
+            SnackBarService.SendError("Erro ao alterar senha: " + response.Body);
         return response.IsSuccess();
     }
 

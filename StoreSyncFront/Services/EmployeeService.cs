@@ -17,7 +17,7 @@ public class EmployeeService(IApiService apiService) : IEmployeeService
         if (response.IsSuccess())
             return JsonConvert.DeserializeObject<PaginatedResult<Employee>>(response.Body) ?? new PaginatedResult<Employee>();
 
-        SnackBarService.Send("Erro ao buscar funcionários: " + response.Body);
+        SnackBarService.SendError("Erro ao buscar funcionários: " + response.Body);
         return new PaginatedResult<Employee> { Items = new List<Employee>() };
     }
 
@@ -27,34 +27,40 @@ public class EmployeeService(IApiService apiService) : IEmployeeService
         if (response.IsSuccess())
             return JsonConvert.DeserializeObject<Employee>(response.Body);
 
-        SnackBarService.Send("Erro ao buscar funcionário: " + response.Body);
+        SnackBarService.SendError("Erro ao buscar funcionário: " + response.Body);
         return null;
     }
 
     public async Task<int> CreateEmployeeAsync(Employee employee)
     {
         Response response = await apiService.PostAsync("/api/employees", JsonContent.Create(employee));
-        SnackBarService.Send(response.IsSuccess()
-            ? "Funcionário cadastrado com sucesso."
-            : "Erro ao cadastrar funcionário: " + response.Body);
+        if (response.IsSuccess())
+            SnackBarService.SendSuccess("Funcionário cadastrado com sucesso."
+            );
+        else
+            SnackBarService.SendError("Erro ao cadastrar funcionário: " + response.Body);
         return response.IsSuccess() ? 0 : 1;
     }
 
     public async Task<int> UpdateEmployeeAsync(Employee employee)
     {
         Response response = await apiService.PutAsync($"/api/employees/{employee.EmployeeId}", JsonContent.Create(employee));
-        SnackBarService.Send(response.IsSuccess()
-            ? "Funcionário atualizado com sucesso."
-            : "Erro ao atualizar funcionário: " + response.Body);
+        if (response.IsSuccess())
+            SnackBarService.SendSuccess("Funcionário atualizado com sucesso."
+            );
+        else
+            SnackBarService.SendError("Erro ao atualizar funcionário: " + response.Body);
         return response.IsSuccess() ? 0 : 1;
     }
 
     public async Task<int> DeleteEmployeeAsync(Guid employeeId)
     {
         Response response = await apiService.DeleteAsync($"/api/employees/{employeeId}");
-        SnackBarService.Send(response.IsSuccess()
-            ? "Funcionário excluído com sucesso."
-            : "Erro ao excluir funcionário: " + response.Body);
+        if (response.IsSuccess())
+            SnackBarService.SendSuccess("Funcionário excluído com sucesso."
+            );
+        else
+            SnackBarService.SendError("Erro ao excluir funcionário: " + response.Body);
         return response.IsSuccess() ? 0 : 1;
     }
 }

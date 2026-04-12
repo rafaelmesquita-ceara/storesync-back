@@ -28,6 +28,7 @@ namespace StoreSyncBack.Repositories
                     s.discount AS Discount,
                     s.addition AS Addition,
                     s.total_amount AS TotalAmount,
+                    s.troco AS Troco,
                     s.status AS Status,
                     s.sale_date AS SaleDate,
                     s.created_at AS CreatedAt,
@@ -74,6 +75,7 @@ namespace StoreSyncBack.Repositories
                     s.discount AS Discount,
                     s.addition AS Addition,
                     s.total_amount AS TotalAmount,
+                    s.troco AS Troco,
                     s.status AS Status,
                     s.sale_date AS SaleDate,
                     s.created_at AS CreatedAt,
@@ -137,6 +139,41 @@ namespace StoreSyncBack.Repositories
             );
 
             sale.Items = items.ToList();
+
+            var sqlPayments = @"
+                SELECT
+                    sp.sale_payment_id   AS SalePaymentId,
+                    sp.sale_id           AS SaleId,
+                    sp.payment_method_id AS PaymentMethodId,
+                    sp.amount            AS Amount,
+                    sp.installments      AS Installments,
+                    sp.surcharge_applied AS SurchargeApplied,
+                    sp.surcharge_amount  AS SurchargeAmount,
+                    sp.created_at        AS CreatedAt,
+                    pm.name              AS Name,
+                    pm.payment_method_id AS PaymentMethodId,
+                    pm.type              AS Type,
+                    pm.status            AS Status,
+                    pm.created_at        AS CreatedAt,
+                    pm.updated_at        AS UpdatedAt
+                FROM sale_payment sp
+                JOIN payment_method pm ON sp.payment_method_id = pm.payment_method_id
+                WHERE sp.sale_id = @Id
+                ORDER BY sp.created_at;
+            ";
+
+            var payments = await _db.QueryAsync<SalePayment, PaymentMethod, SalePayment>(
+                sqlPayments,
+                (payment, pm) =>
+                {
+                    payment.PaymentMethod = pm;
+                    return payment;
+                },
+                new { Id = saleId },
+                splitOn: "Name"
+            );
+
+            sale.Payments = payments.ToList();
             return sale;
         }
 
@@ -167,11 +204,12 @@ namespace StoreSyncBack.Repositories
             var sql = @"
                 UPDATE sale
                 SET
-                    employee_id = @EmployeeId,
-                    client_id   = @ClientId,
-                    discount    = @Discount,
-                    addition    = @Addition,
-                    total_amount = @TotalAmount
+                    employee_id  = @EmployeeId,
+                    client_id    = @ClientId,
+                    discount     = @Discount,
+                    addition     = @Addition,
+                    total_amount = @TotalAmount,
+                    troco        = @Troco
                 WHERE sale_id = @SaleId AND status = @StatusAberta;
             ";
 
@@ -182,12 +220,13 @@ namespace StoreSyncBack.Repositories
                 sale.Discount,
                 sale.Addition,
                 sale.TotalAmount,
+                sale.Troco,
                 sale.SaleId,
                 StatusAberta = SaleStatus.Aberta
             });
         }
 
-        public async Task<int> FinalizeSaleAsync(Guid saleId)
+        public async Task<int> FinalizeSaleAsync(Guid saleId, decimal troco = 0)
         {
             if (_db.State != ConnectionState.Open)
                 _db.Open();
@@ -229,8 +268,8 @@ namespace StoreSyncBack.Repositories
                 }
 
                 var affected = await _db.ExecuteAsync(
-                    "UPDATE sale SET status = @Status WHERE sale_id = @Id;",
-                    new { Status = SaleStatus.Finalizada, Id = saleId }, transaction);
+                    "UPDATE sale SET status = @Status, troco = @Troco WHERE sale_id = @Id;",
+                    new { Status = SaleStatus.Finalizada, Troco = troco, Id = saleId }, transaction);
 
                 transaction.Commit();
                 return affected;
@@ -276,7 +315,7 @@ namespace StoreSyncBack.Repositories
                 }
 
                 var affected = await _db.ExecuteAsync(
-                    "UPDATE sale SET status = @Status WHERE sale_id = @Id;",
+                    "UPDATE sale SET status = @Status, addition = 0, troco = 0 WHERE sale_id = @Id;",
                     new { Status = SaleStatus.Cancelada, Id = saleId }, transaction);
 
                 transaction.Commit();

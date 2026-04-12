@@ -66,19 +66,19 @@ public partial class AddSaleItemDialog : Window
 
         if (_selectedProduct == null)
         {
-            SnackBarService.Send("Selecione um produto.");
+            SnackBarService.SendWarning("Selecione um produto.");
             return;
         }
 
         if (!int.TryParse(QuantityBox.Text, out int qty) || qty <= 0)
         {
-            SnackBarService.Send("Informe uma quantidade válida maior que zero.");
+            SnackBarService.SendWarning("Informe uma quantidade válida maior que zero.");
             return;
         }
 
         if (qty > _selectedProduct.StockQuantity)
         {
-            SnackBarService.Send($"Estoque insuficiente. Disponível: {_selectedProduct.StockQuantity}.");
+            SnackBarService.SendWarning($"Estoque insuficiente. Disponível: {_selectedProduct.StockQuantity}.");
             return;
         }
 

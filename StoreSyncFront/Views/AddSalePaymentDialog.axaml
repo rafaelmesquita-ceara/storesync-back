@@ -1,0 +1,100 @@
+<Window
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
+    xmlns:materialIcons="using:Material.Icons.Avalonia"
+    xmlns:p1="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
+    xmlns:sm="using:SharedModels"
+    xmlns:views="using:StoreSyncFront.Views"
+    x:Class="StoreSyncFront.Views.AddSalePaymentDialog"
+    Title="Adicionar Pagamento"
+    Width="480"
+    Height="430"
+    CanResize="False"
+    ShowInTaskbar="False"
+    WindowStartupLocation="CenterOwner">
+
+    <controls:Card Margin="16">
+        <Grid RowDefinitions="*, Auto">
+
+            <StackPanel Grid.Row="0" Spacing="12" VerticalAlignment="Top">
+
+                <ComboBox
+                    x:Name="PaymentMethodCombo"
+                    HorizontalAlignment="Stretch"
+                    p1:ComboBoxAssist.Label="Forma de Pagamento"
+                    Theme="{StaticResource MaterialOutlineComboBox}"
+                    SelectionChanged="PaymentMethodCombo_SelectionChanged">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate x:DataType="sm:PaymentMethod">
+                            <TextBlock Text="{Binding Name}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+
+                <TextBox
+                    x:Name="AmountBox"
+                    p1:TextFieldAssist.Label="Valor (R$)"
+                    KeyDown="AmountBox_KeyDown"
+                    UseFloatingWatermark="True" />
+
+                <ComboBox
+                    x:Name="RatesCombo"
+                    HorizontalAlignment="Stretch"
+                    IsVisible="False"
+                    p1:ComboBoxAssist.Label="Parcelas / Taxa"
+                    Theme="{StaticResource MaterialOutlineComboBox}"
+                    SelectionChanged="RatesCombo_SelectionChanged">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate x:DataType="views:RateDisplayItem">
+                            <TextBlock Text="{Binding InstallmentsLabel}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+
+                <CheckBox
+                    x:Name="SurchargeCheck"
+                    Content="Repassar taxa ao cliente"
+                    IsVisible="False"
+                    IsCheckedChanged="SurchargeCheck_IsCheckedChanged" />
+
+                <TextBox
+                    x:Name="SurchargeBox"
+                    p1:TextFieldAssist.Label="Taxa aplicada (R$)"
+                    IsEnabled="False"
+                    IsVisible="False"
+                    UseFloatingWatermark="True" />
+
+                <Border
+                    Background="#F0FAF0"
+                    BorderBrush="#4CAF50"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Padding="12,8">
+                    <TextBlock
+                        x:Name="CustomerAmountText"
+                        FontSize="15"
+                        FontWeight="SemiBold"
+                        Foreground="#2E7D32"
+                        Text="Valor a cobrar do cliente: R$ 0,00" />
+                </Border>
+
+            </StackPanel>
+
+            <StackPanel
+                Grid.Row="1"
+                Margin="0,12,0,0"
+                HorizontalAlignment="Right"
+                Orientation="Horizontal"
+                Spacing="8">
+                <Button Classes="Outlined" Click="CancelButton_Click" Width="100">
+                    Cancelar
+                </Button>
+                <Button Classes="Raised" Background="DarkGreen" Click="ConfirmButton_Click" Width="100">
+                    Confirmar
+                </Button>
+            </StackPanel>
+
+        </Grid>
+    </controls:Card>
+</Window>

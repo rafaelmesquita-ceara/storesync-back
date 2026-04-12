@@ -242,6 +242,63 @@ namespace StoreSyncBack.Tests.Fixtures
 
         #endregion
 
+        #region PaymentMethod
+
+        private static readonly Faker<PaymentMethod> PaymentMethodFaker = new Faker<PaymentMethod>("pt_BR")
+            .RuleFor(p => p.PaymentMethodId, f => Guid.NewGuid())
+            .RuleFor(p => p.Name, f => f.PickRandom("Dinheiro", "Débito", "Crédito", "Pix"))
+            .RuleFor(p => p.Type, _ => PaymentMethodType.Cash)
+            .RuleFor(p => p.Status, _ => 1)
+            .RuleFor(p => p.CreatedAt, f => f.Date.Past())
+            .RuleFor(p => p.UpdatedAt, f => f.Date.Past());
+
+        public static PaymentMethod CreatePaymentMethod(int type = PaymentMethodType.Cash, string? name = null)
+        {
+            var pm = PaymentMethodFaker.Generate();
+            pm.Type = type;
+            if (name != null) pm.Name = name;
+            return pm;
+        }
+
+        private static readonly Faker<PaymentMethodRate> PaymentMethodRateFaker = new Faker<PaymentMethodRate>("pt_BR")
+            .RuleFor(r => r.RateId, f => Guid.NewGuid())
+            .RuleFor(r => r.PaymentMethodId, f => Guid.NewGuid())
+            .RuleFor(r => r.Installments, f => f.Random.Int(1, 12))
+            .RuleFor(r => r.RatePercentage, f => Math.Round(f.Random.Decimal(0.5m, 5m), 4))
+            .RuleFor(r => r.CreatedAt, f => f.Date.Past());
+
+        public static PaymentMethodRate CreatePaymentMethodRate(int installments = 1, decimal ratePercentage = 2.5m)
+        {
+            var rate = PaymentMethodRateFaker.Generate();
+            rate.Installments = installments;
+            rate.RatePercentage = ratePercentage;
+            return rate;
+        }
+
+        #endregion
+
+        #region SalePayment
+
+        private static readonly Faker<SalePayment> SalePaymentFaker = new Faker<SalePayment>("pt_BR")
+            .RuleFor(p => p.SalePaymentId, f => Guid.NewGuid())
+            .RuleFor(p => p.SaleId, f => Guid.NewGuid())
+            .RuleFor(p => p.PaymentMethodId, f => Guid.NewGuid())
+            .RuleFor(p => p.Amount, f => Math.Round(f.Random.Decimal(10, 1000), 2))
+            .RuleFor(p => p.Installments, _ => 1)
+            .RuleFor(p => p.SurchargeApplied, _ => false)
+            .RuleFor(p => p.SurchargeAmount, _ => 0)
+            .RuleFor(p => p.CreatedAt, f => f.Date.Past());
+
+        public static SalePayment CreateSalePayment(decimal amount = 100m, bool surchargeApplied = false)
+        {
+            var payment = SalePaymentFaker.Generate();
+            payment.Amount = amount;
+            payment.SurchargeApplied = surchargeApplied;
+            return payment;
+        }
+
+        #endregion
+
         #region DTOs
 
         public static UserLoginDto CreateUserLoginDto(string login = "testuser", string password = "testpass123")

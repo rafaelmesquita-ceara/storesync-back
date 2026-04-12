@@ -4,36 +4,24 @@ Auth via JWT. Única rota pública: login. Todas as demais exigem `Authorization
 
 ## Entidades
 
-**User** — conta de acesso, sempre vinculada a um `Employee`.
+**User:** `UserId (Guid PK)`, `Login (único)`, `Password (BCrypt)`, `EmployeeId (FK)`
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| UserId | Guid | PK |
-| Login | string | Nome de usuário (único) |
-| Password | string | Senha hasheada (BCrypt) |
-| EmployeeId | Guid | Funcionário vinculado |
-
-**Role** (definida no Employee):
-
-| Role | Acesso |
-|---|---|
-| `admin` | Acesso total |
+**Role** (definida no Employee): `admin` = acesso total
 
 ## Endpoints
 
-| Método | Rota | Auth | Descrição |
-|---|---|---|---|
-| POST | `/api/users/login` | Público | Autentica, retorna token JWT |
-| POST | `/api/users` | Admin | Cria usuário |
-| GET | `/api/users` | Autenticado | Lista usuários |
-| GET | `/api/users/{id}` | Autenticado | Busca por ID |
-| PUT | `/api/users/{id}` | Admin | Atualiza usuário |
-| DELETE | `/api/users/{id}` | Admin | Remove usuário |
-| POST | `/api/users/change-password` | Autenticado | Altera senha |
+| Método | Rota | Auth |
+|---|---|---|
+| POST | `/api/users/login` | Público |
+| POST | `/api/users` | Admin |
+| GET | `/api/users` | Autenticado |
+| GET | `/api/users/{id}` | Autenticado |
+| PUT | `/api/users/{id}` | Admin |
+| DELETE | `/api/users/{id}` | Admin |
+| POST | `/api/users/change-password` | Autenticado |
 
-## Regras de negócio
+## Regras
 
-- Senha nunca retornada nas respostas (campo omitido)
-- Login duplicado não permitido
-- Token JWT contém: `UserId`, `Role`, expiração
-- Usuário só altera a própria senha com confirmação da senha atual
+- Senha nunca retornada; login duplicado → 409
+- JWT contém: `UserId`, `Role`, expiração
+- Usuário só altera própria senha com confirmação da senha atual

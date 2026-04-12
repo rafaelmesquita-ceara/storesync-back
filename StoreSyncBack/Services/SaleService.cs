@@ -6,10 +6,12 @@ namespace StoreSyncBack.Services
     public class SaleService : ISaleService
     {
         private readonly ISaleRepository _repo;
+        private readonly ISalePaymentRepository _salePaymentRepo;
 
-        public SaleService(ISaleRepository repo)
+        public SaleService(ISaleRepository repo, ISalePaymentRepository salePaymentRepo)
         {
             _repo = repo;
+            _salePaymentRepo = salePaymentRepo;
         }
 
         public Task<PaginatedResult<Sale>> GetAllSalesAsync(int limit = 50, int offset = 0)
@@ -59,7 +61,21 @@ namespace StoreSyncBack.Services
             if (saleId == Guid.Empty)
                 throw new ArgumentException("SaleId inválido.", nameof(saleId));
 
-            return await _repo.FinalizeSaleAsync(saleId);
+            var sale = await _repo.GetSaleByIdAsync(saleId);
+            if (sale == null)
+                throw new ArgumentException("Venda não encontrada.");
+            if (sale.Status != SaleStatus.Aberta)
+                throw new InvalidOperationException("Apenas vendas em aberto podem ser finalizadas.");
+            if (sale.Items == null || sale.Items.Count == 0)
+                throw new InvalidOperationException("A venda deve conter pelo menos um item para ser finalizada.");
+
+            var totalPaid = await _salePaymentRepo.GetTotalPaidBySaleIdAsync(saleId);
+            if (totalPaid < sale.TotalAmount)
+                throw new InvalidOperationException(
+                    $"Pagamento insuficiente. Total a pagar: R$ {sale.TotalAmount:N2}. Total pago: R$ {totalPaid:N2}.");
+
+            var troco = totalPaid - sale.TotalAmount;
+            return await _repo.FinalizeSaleAsync(saleId, troco);
         }
 
         public async Task<int> CancelSaleAsync(Guid saleId)

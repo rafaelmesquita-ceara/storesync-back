@@ -1,0 +1,204 @@
+<UserControl
+    x:Class="StoreSyncFront.Views.PaymentMethodsView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls1="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
+    xmlns:converters="using:StoreSyncFront.Utils"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:materialIcons="using:Material.Icons.Avalonia"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:p1="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
+    xmlns:vm="clr-namespace:StoreSyncFront.ViewModels"
+    x:Name="Root"
+    d:DesignHeight="600"
+    d:DesignWidth="900"
+    x:DataType="vm:PaymentMethodsViewModel"
+    mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+    </UserControl.Resources>
+
+    <controls1:Card Margin="16">
+        <Grid Margin="16" RowDefinitions="Auto, Auto, *">
+
+            <!-- Header -->
+            <Grid Grid.Row="0" Margin="0,0,0,10" HorizontalAlignment="Stretch" ColumnDefinitions="*, Auto">
+                <TextBlock
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Classes="Headline6"
+                    Text="{Binding Title}" />
+
+                <Button
+                    Grid.Column="1"
+                    Classes="Flat"
+                    HotKey="F5"
+                    Command="{Binding RefreshCommand}"
+                    IsVisible="{Binding IsEdit, Converter={StaticResource InverseBooleanConverter}}">
+                    <materialIcons:MaterialIcon Width="24" Height="24" Kind="Refresh" />
+                </Button>
+            </Grid>
+
+            <Separator Grid.Row="1" Margin="0,0,0,10" />
+
+            <!-- Conteúdo -->
+            <Panel Grid.Row="2">
+
+                <!-- Lista -->
+                <Grid IsVisible="{Binding IsEdit, Converter={StaticResource InverseBooleanConverter}}" RowDefinitions="*, Auto">
+                    <DataGrid
+                        Grid.Row="0"
+                        x:Name="MethodsDataGrid"
+                        AutoGenerateColumns="False"
+                        IsReadOnly="True"
+                        ItemsSource="{Binding PaymentMethods}"
+                        SelectedItem="{Binding SelectedPaymentMethod}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Width="3*" Binding="{Binding Name}" Header="Nome" />
+                            <DataGridTemplateColumn Width="2*" Header="Tipo">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock VerticalAlignment="Center" Text="{Binding TypeLabel}" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Ações">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="5">
+                                            <controls1:FloatingButton
+                                                Margin="3"
+                                                Classes="Mini"
+                                                Click="EditButton_Click"
+                                                Tag="{Binding}"
+                                                ToolTip.Tip="Editar">
+                                                <materialIcons:MaterialIcon Width="16" Height="16" Kind="Edit" />
+                                            </controls1:FloatingButton>
+                                            <controls1:FloatingButton
+                                                Margin="3,3,15,3"
+                                                Classes="Mini"
+                                                Command="{Binding #Root.((vm:PaymentMethodsViewModel)DataContext).DeleteCommand}"
+                                                CommandParameter="{Binding}"
+                                                ToolTip.Tip="Excluir / Inativar">
+                                                <materialIcons:MaterialIcon Width="16" Height="16" Kind="Delete" />
+                                            </controls1:FloatingButton>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <!-- FAB novo -->
+                    <controls1:FloatingButton
+                        Grid.Row="0"
+                        Margin="24,24,40,24"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        Background="DarkGreen"
+                        Command="{Binding ToggleEditCommand}"
+                        HotKey="F1">
+                        <materialIcons:MaterialIcon Kind="Plus" />
+                    </controls1:FloatingButton>
+                </Grid>
+
+                <!-- Formulário -->
+                <Grid IsVisible="{Binding IsEdit}">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="0,0,0,80" Spacing="12">
+
+                            <TextBox
+                                p1:TextFieldAssist.Label="Nome"
+                                Text="{Binding Name}"
+                                UseFloatingWatermark="True" />
+
+                            <ComboBox
+                                HorizontalAlignment="Stretch"
+                                ItemsSource="{Binding TypeOptions}"
+                                SelectedItem="{Binding SelectedTypeItem}"
+                                p1:ComboBoxAssist.Label="Tipo"
+                                Theme="{StaticResource MaterialOutlineComboBox}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Label}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+
+                            <!-- Seção Taxas (somente Débito/Crédito) -->
+                            <StackPanel IsVisible="{Binding ShowRates}" Spacing="8">
+
+                                <Separator />
+                                <TextBlock Classes="Body2" Opacity="0.6" Text="Taxas por Parcelas" />
+
+                                <DataGrid
+                                    Height="130"
+                                    AutoGenerateColumns="False"
+                                    IsReadOnly="True"
+                                    ItemsSource="{Binding Rates}"
+                                    SelectedItem="{Binding SelectedRate}">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Width="1*" Binding="{Binding Installments}" Header="Parcelas" />
+                                        <DataGridTextColumn Width="2*" Binding="{Binding RatePercentage, StringFormat='{}{0:0.##}%'}" Header="Taxa" />
+                                    </DataGrid.Columns>
+                                </DataGrid>
+
+                                <!-- Adicionar nova taxa (somente se já foi salvo) -->
+                                <StackPanel IsVisible="{Binding PaymentMethodId, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                            Orientation="Horizontal" Spacing="8">
+                                    <TextBox
+                                        Width="100"
+                                        p1:TextFieldAssist.Label="Parcelas"
+                                        Text="{Binding NewInstallments}"
+                                        UseFloatingWatermark="True" />
+                                    <TextBox
+                                        Width="120"
+                                        p1:TextFieldAssist.Label="Taxa (%)"
+                                        Text="{Binding NewRatePercentage}"
+                                        UseFloatingWatermark="True" />
+                                    <Button Classes="Outlined" Command="{Binding AddRateCommand}" VerticalAlignment="Bottom">
+                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                            <materialIcons:MaterialIcon Width="16" Height="16" Kind="Plus" />
+                                            <TextBlock Text="Adicionar Taxa" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Classes="Outlined" Command="{Binding RemoveRateCommand}" VerticalAlignment="Bottom">
+                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                            <materialIcons:MaterialIcon Width="16" Height="16" Kind="Minus" />
+                                            <TextBlock Text="Remover Taxa" />
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+
+                            </StackPanel>
+
+                            <!-- Salvar -->
+                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,8,0,0">
+                                <Button Classes="Outlined" Command="{Binding ClearFormCommand}" Width="100">
+                                    Cancelar
+                                </Button>
+                                <Button Classes="Raised" Background="DarkGreen" Command="{Binding SaveCommand}" Width="100">
+                                    Salvar
+                                </Button>
+                            </StackPanel>
+
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Botão Fechar -->
+                    <controls1:FloatingButton
+                        Margin="24"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        Background="DarkRed"
+                        Command="{Binding ClearFormCommand}"
+                        HotKey="Escape">
+                        <materialIcons:MaterialIcon Kind="Close" />
+                    </controls1:FloatingButton>
+                </Grid>
+
+            </Panel>
+        </Grid>
+    </controls1:Card>
+</UserControl>

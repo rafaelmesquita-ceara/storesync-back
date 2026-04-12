@@ -106,7 +106,7 @@ public partial class CategoriesViewModel : ObservableObject
         var name = NewCategoryName.Trim();
         if (string.IsNullOrWhiteSpace(name))
         {
-            SnackBarService.Send("Informe o nome da categoria.");
+            SnackBarService.SendWarning("Informe o nome da categoria.");
             return;
         }
 
@@ -134,7 +134,7 @@ public partial class CategoriesViewModel : ObservableObject
         var name = row.DraftName.Trim();
         if (string.IsNullOrWhiteSpace(name))
         {
-            SnackBarService.Send("O nome da categoria não pode estar vazio.");
+            SnackBarService.SendWarning("O nome da categoria não pode estar vazio.");
             return;
         }
 

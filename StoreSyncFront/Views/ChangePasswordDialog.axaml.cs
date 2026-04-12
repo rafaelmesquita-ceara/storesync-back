@@ -27,13 +27,13 @@ public partial class ChangePasswordDialog : Window
 
         if (nova.Length < 6)
         {
-            SnackBarService.Send("A senha deve ter pelo menos 6 caracteres.");
+            SnackBarService.SendWarning("A senha deve ter pelo menos 6 caracteres.");
             return;
         }
 
         if (nova != confirma)
         {
-            SnackBarService.Send("A senha e a confirmação não coincidem.");
+            SnackBarService.SendWarning("A senha e a confirmação não coincidem.");
             return;
         }
 

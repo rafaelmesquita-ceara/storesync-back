@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -31,7 +31,7 @@ public partial class LoginViewModel : ObservableObject
         bool logged = await _authService.LoadUserDataAsync();
         if (logged)
         {
-            SnackBarService.Send("Login automático realizado com sucesso.");
+            SnackBarService.SendSuccess("Login autom�tico realizado com sucesso.");
             _navigationService.NavigateTo<MainViewModel>();
         }
     }
@@ -41,13 +41,20 @@ public partial class LoginViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(Login) || string.IsNullOrWhiteSpace(Senha))
         {
-            SnackBarService.Send("Os campos devem estar preenchidos!");
+            SnackBarService.SendWarning("Os campos devem estar preenchidos!");
             return;
         }
 
         string errorMessage = await _authService.Auth(new UserLoginDto() { Login = Login, Password = Senha });
 
-        SnackBarService.Send(errorMessage == string.Empty ? "Login realizado com sucesso." : "Erro: " + errorMessage);
+        if (errorMessage == string.Empty)
+        {
+            SnackBarService.SendSuccess("Login realizado com sucesso.");
+        }
+        else
+        {
+            SnackBarService.SendError("Erro: " + errorMessage);
+        }
         if (errorMessage == string.Empty)
         {
             Console.WriteLine(_authService.GetLoggedUser()?.UserId);

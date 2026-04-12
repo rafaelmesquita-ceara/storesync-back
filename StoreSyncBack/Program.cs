@@ -112,6 +112,9 @@ services.AddScoped<ISaleRepository, StoreSyncBack.Repositories.SaleRepository>()
 services.AddScoped<ISaleService, StoreSyncBack.Services.SaleService>();
 services.AddScoped<StoreSyncBack.Services.SalesPdfReportService>();
 
+services.AddScoped<IClientRepository, StoreSyncBack.Repositories.ClientRepository>();
+services.AddScoped<IClientService, StoreSyncBack.Services.ClientService>();
+
 services.AddScoped<IUserRepository, StoreSyncBack.Repositories.UserRepository>();
 services.AddScoped<IUserService, StoreSyncBack.Services.UserService>();
 

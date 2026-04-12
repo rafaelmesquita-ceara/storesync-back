@@ -18,6 +18,7 @@
                 <MenuItem Header="Categorias" Command="{Binding OpenCategoriesTabCommand}" />
                 <MenuItem Header="Produtos" Command="{Binding OpenProductsTabCommand}"/>
                 <MenuItem Header="Funcionários" Command="{Binding OpenEmployeesTabCommand}"/>
+                <MenuItem Header="Clientes" Command="{Binding OpenClientsTabCommand}"/>
             </MenuItem>
             <MenuItem Header="_Movimentações">
                 <MenuItem Header="Vendas" Command="{Binding OpenSalesTabCommand}" />

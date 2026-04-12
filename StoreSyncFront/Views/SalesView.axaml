@@ -20,7 +20,7 @@
     </UserControl.Resources>
 
     <controls1:Card Margin="16">
-        <Grid Margin="16" RowDefinitions="Auto, Auto, Auto, *">
+        <Grid Margin="16" RowDefinitions="Auto, Auto, *">
 
             <!-- Header -->
             <Grid Grid.Row="0" Margin="0,0,0,10" HorizontalAlignment="Stretch" ColumnDefinitions="*, *">
@@ -50,6 +50,9 @@
                             </Button>
                             <Button Width="{Binding $self.Bounds.Height}" Padding="4" Classes="Flat" HotKey="F5" Command="{Binding RefreshCommand}">
                                 <materialIcons:MaterialIcon Width="24" Height="24" Kind="Refresh" />
+                            </Button>
+                            <Button Width="{Binding $self.Bounds.Height}" Padding="4" Classes="Flat" Click="ExportReportButton_Click" ToolTip.Tip="Exportar relatório PDF">
+                                <materialIcons:MaterialIcon Width="24" Height="24" Kind="FileExportOutline" />
                             </Button>
                         </StackPanel>
                     </TextBox.InnerRightContent>
@@ -115,31 +118,10 @@
                 </StackPanel>
             </Grid>
 
-            <!-- Relatório -->
-            <StackPanel 
-                Grid.Row="1" 
-                Orientation="Horizontal" 
-                Spacing="10" 
-                Margin="0,0,0,10" 
-                IsVisible="{Binding IsEdit, Converter={StaticResource InverseBooleanConverter}}">
-                
-                <TextBlock Text="Relatório de:" VerticalAlignment="Center" FontWeight="SemiBold"/>
-                <CalendarDatePicker SelectedDate="{Binding ReportStartDate}" />
-                <TextBlock Text="Até:" VerticalAlignment="Center" FontWeight="SemiBold" />
-                <CalendarDatePicker SelectedDate="{Binding ReportEndDate}" />
-                
-                <Button Classes="Flat" Click="GenerateReportButton_Click" ToolTip.Tip="Gerar PDF de Vendas Finalizadas">
-                    <StackPanel Orientation="Horizontal" Spacing="5">
-                        <materialIcons:MaterialIcon Kind="FilePdfBox" Foreground="DarkRed" />
-                        <TextBlock Text="Baixar PDF" VerticalAlignment="Center" Foreground="DarkRed" />
-                    </StackPanel>
-                </Button>
-            </StackPanel>
-
-            <Separator Grid.Row="2" Margin="0,0,0,10" />
+            <Separator Grid.Row="1" Margin="0,0,0,10" />
 
             <!-- Conteúdo -->
-            <Panel Grid.Row="3">
+            <Panel Grid.Row="2">
 
                 <!-- Lista -->
                 <Grid IsVisible="{Binding IsEdit, Converter={StaticResource InverseBooleanConverter}}" RowDefinitions="*, Auto">
@@ -171,7 +153,7 @@
                                     Width="1.5*"
                                     Binding="{Binding StatusLabel}"
                                     Header="Situação" />
-                                <DataGridTemplateColumn Header="Ações">
+                                <DataGridTemplateColumn Width="100" Header="Ações">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="5">
@@ -218,7 +200,7 @@
 
                     <controls1:FloatingButton
                         Grid.Row="0" Grid.RowSpan="2"
-                        Margin="24"
+                        Margin="24,24,40,24"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Bottom"
                         Background="DarkGreen"

@@ -21,12 +21,14 @@ public partial class SalesViewModel : ObservableValidator
     private readonly IProductService _productService;
     private readonly IEmployeeService _employeeService;
     private readonly IAuthService _authService;
+    private readonly IClientService _clientService;
 
     public string Title => "Vendas";
 
     public ObservableCollection<SaleViewModel> Sales { get; } = new();
     public ObservableCollection<SaleItemViewModel> SaleItems { get; } = new();
     public ObservableCollection<Employee> Employees { get; } = new();
+    public ObservableCollection<Client> Clients { get; } = new();
     private List<SaleViewModel>? _allSales;
 
     [ObservableProperty] private string _searchBarField = string.Empty;
@@ -59,20 +61,18 @@ public partial class SalesViewModel : ObservableValidator
 
     [ObservableProperty] private Guid _saleId = Guid.Empty;
     [ObservableProperty] private Employee? _selectedEmployee;
+    [ObservableProperty] private Client? _selectedClient;
     [ObservableProperty] private string _discount = "0";
     [ObservableProperty] private string _addition = "0";
     [ObservableProperty] private decimal _totalAmount;
     [ObservableProperty] private int _selectedStatus;
     [ObservableProperty] private SaleItemViewModel? _selectedSaleItem;
 
-    [ObservableProperty] private DateTimeOffset _reportStartDate = DateTimeOffset.Now.AddDays(-7);
-    [ObservableProperty] private DateTimeOffset _reportEndDate = DateTimeOffset.Now;
-
     public ISaleService SaleService => _saleService;
 
-    public Task<byte[]?> DownloadReportAsync()
+    public Task<byte[]?> DownloadReportAsync(DateTime startDate, DateTime endDate)
     {
-        return _saleService.DownloadSalesReportAsync(ReportStartDate.Date, ReportEndDate.Date);
+        return _saleService.DownloadSalesReportAsync(startDate, endDate);
     }
 
     public IRelayCommand ToggleEditCommand { get; }
@@ -82,13 +82,15 @@ public partial class SalesViewModel : ObservableValidator
         ISaleItemService saleItemService,
         IProductService productService,
         IEmployeeService employeeService,
-        IAuthService authService)
+        IAuthService authService,
+        IClientService clientService)
     {
         _saleService = saleService;
         _saleItemService = saleItemService;
         _productService = productService;
         _employeeService = employeeService;
         _authService = authService;
+        _clientService = clientService;
         ToggleEditCommand = new AsyncRelayCommand(CreateNewSaleAsync);
 
         SaleItems.CollectionChanged += (_, _) =>
@@ -120,6 +122,12 @@ public partial class SalesViewModel : ObservableValidator
         Employees.Clear();
         foreach (var e in employeesPage.Items)
             Employees.Add(e);
+
+        var clientsPage = await _clientService.GetAllClientsAsync(1000, 0);
+        Clients.Clear();
+        Clients.Add(new Client { ClientId = Guid.Empty, Name = "(nenhum)" });
+        foreach (var c in clientsPage.Items)
+            Clients.Add(c);
     }
 
     private async Task CreateNewSaleAsync()
@@ -140,6 +148,7 @@ public partial class SalesViewModel : ObservableValidator
 
         SaleId = sale.SaleId;
         SelectedEmployee = defaultEmployee ?? Employees.FirstOrDefault();
+        SelectedClient = Clients.FirstOrDefault(c => c.ClientId == Guid.Empty);
         Discount = "0";
         Addition = "0";
         TotalAmount = 0;
@@ -180,6 +189,9 @@ public partial class SalesViewModel : ObservableValidator
     {
         SaleId = vm.SaleId;
         SelectedEmployee = Employees.FirstOrDefault(e => e.EmployeeId == vm.EmployeeId);
+        SelectedClient = vm.ClientId.HasValue && vm.ClientId != Guid.Empty
+            ? Clients.FirstOrDefault(c => c.ClientId == vm.ClientId)
+            : Clients.FirstOrDefault(c => c.ClientId == Guid.Empty);
         Discount = vm.Discount.ToString(CultureInfo.CurrentCulture);
         Addition = vm.Addition.ToString(CultureInfo.CurrentCulture);
         TotalAmount = vm.TotalAmount;
@@ -209,6 +221,7 @@ public partial class SalesViewModel : ObservableValidator
         IsActionsExpanded = false;
         SaleId = Guid.Empty;
         SelectedEmployee = null;
+        SelectedClient = null;
         Discount = "0";
         Addition = "0";
         TotalAmount = 0;
@@ -225,10 +238,12 @@ public partial class SalesViewModel : ObservableValidator
         decimal.TryParse(Discount.Replace(',', '.'), NumberStyles.Any, CultureInfo.InvariantCulture, out decimal discountValue);
         decimal.TryParse(Addition.Replace(',', '.'), NumberStyles.Any, CultureInfo.InvariantCulture, out decimal additionValue);
 
+        var clientId = SelectedClient?.ClientId;
         var sale = new Sale
         {
             SaleId = SaleId,
             EmployeeId = SelectedEmployee?.EmployeeId ?? Guid.Empty,
+            ClientId = clientId == Guid.Empty ? null : clientId,
             Discount = discountValue,
             Addition = additionValue,
             TotalAmount = TotalAmount,

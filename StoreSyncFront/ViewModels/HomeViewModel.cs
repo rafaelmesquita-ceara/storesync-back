@@ -72,11 +72,11 @@ public partial class HomeViewModel : ObservableObject
         IsLoading = true;
         try
         {
-            var salesTask      = _saleService.GetAllSalesAsync();
-            var financeTask    = _financeService.GetAllFinanceAsync();
-            var productsTask   = _productService.GetAllProductsAsync();
-            var categoriesTask = _categoryService.GetAllCategoriesAsync();
-            var employeesTask  = _employeeService.GetAllEmployeesAsync();
+            var salesTask      = _saleService.GetAllSalesAsync(int.MaxValue, 0);
+            var financeTask    = _financeService.GetAllFinanceAsync(int.MaxValue, 0);
+            var productsTask   = _productService.GetAllProductsAsync(int.MaxValue, 0);
+            var categoriesTask = _categoryService.GetAllCategoriesAsync(int.MaxValue, 0);
+            var employeesTask  = _employeeService.GetAllEmployeesAsync(int.MaxValue, 0);
 
             await Task.WhenAll(salesTask, financeTask, productsTask, categoriesTask, employeesTask);
 

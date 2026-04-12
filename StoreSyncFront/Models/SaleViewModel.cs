@@ -12,6 +12,7 @@ public partial class SaleViewModel : ObservableObject
     [ObservableProperty] private string? referencia;
     [ObservableProperty] private Guid employeeId;
     [ObservableProperty] private string? employeeName;
+    [ObservableProperty] private Guid? clientId;
     [ObservableProperty] private decimal discount;
     [ObservableProperty] private decimal addition;
     [ObservableProperty] private decimal totalAmount;
@@ -34,6 +35,7 @@ public partial class SaleViewModel : ObservableObject
         Referencia = sale.Referencia;
         EmployeeId = sale.EmployeeId;
         EmployeeName = sale.Employee?.Name;
+        ClientId = sale.ClientId;
         Discount = sale.Discount;
         Addition = sale.Addition;
         TotalAmount = sale.TotalAmount;

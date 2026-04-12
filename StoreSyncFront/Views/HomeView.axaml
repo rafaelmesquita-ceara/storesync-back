@@ -1,25 +1,131 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:StoreSyncFront.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
+             xmlns:controls1="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="900"
              x:Class="StoreSyncFront.Views.HomeView"
              x:DataType="vm:HomeViewModel">
-    <Grid Background="#1d1912">
-        <Image Source="avares://StoreSyncFront/Assets/storesync-high-resolution-logo-43.png" 
-               Stretch="Uniform"  MaxHeight="600"/>
 
+    <Grid Background="#1d1912">
+
+        <!-- Loading overlay -->
+        <Panel IsVisible="{Binding IsLoading}" ZIndex="100">
+            <Rectangle Fill="#AA000000"/>
+            <ProgressBar IsIndeterminate="True" Width="200"
+                         VerticalAlignment="Center" HorizontalAlignment="Center"/>
+        </Panel>
+
+        <!-- Boas-vindas -->
         <TextBlock Text="{Binding Username, StringFormat='Bem-vindo(a), {0}!'}"
-                   HorizontalAlignment="Right" 
-                   VerticalAlignment="Bottom"
-                   FontSize="28" 
-                   FontWeight="Bold"
-                   Foreground="White"
-                   Margin="0,0,30,20">
+                   HorizontalAlignment="Right" VerticalAlignment="Top"
+                   FontSize="18" FontWeight="Bold" Foreground="White"
+                   Margin="0,12,30,0" ZIndex="10">
             <TextBlock.Effect>
                 <DropShadowEffect Color="Black" BlurRadius="10" Opacity="0.7"/>
             </TextBlock.Effect>
         </TextBlock>
+
+        <!-- Conteúdo do dashboard -->
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                      VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="16,44,16,16" Spacing="12">
+
+                <!-- KPI Cards -->
+                <UniformGrid Columns="4">
+                    <controls1:Card Margin="4" Padding="16">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Vendas Finalizadas (Mês)" FontSize="12" Opacity="0.7" Foreground="White"/>
+                            <TextBlock Text="{Binding TotalVendasMes}" FontSize="30" FontWeight="Bold" Foreground="White"/>
+                        </StackPanel>
+                    </controls1:Card>
+
+                    <controls1:Card Margin="4" Padding="16">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Faturamento do Mês" FontSize="12" Opacity="0.7" Foreground="White"/>
+                            <TextBlock Text="{Binding FaturamentoMes, StringFormat='{}{0:C2}'}" FontSize="24" FontWeight="Bold" Foreground="White"/>
+                        </StackPanel>
+                    </controls1:Card>
+
+                    <controls1:Card Margin="4" Padding="16">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="A Receber em Aberto" FontSize="12" Opacity="0.7" Foreground="White"/>
+                            <TextBlock Text="{Binding AReceberAberto, StringFormat='{}{0:C2}'}" FontSize="24" FontWeight="Bold" Foreground="#4CAF50"/>
+                        </StackPanel>
+                    </controls1:Card>
+
+                    <controls1:Card Margin="4" Padding="16">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="A Pagar em Aberto" FontSize="12" Opacity="0.7" Foreground="White"/>
+                            <TextBlock Text="{Binding APagarAberto, StringFormat='{}{0:C2}'}" FontSize="24" FontWeight="Bold" Foreground="#FF5722"/>
+                        </StackPanel>
+                    </controls1:Card>
+                </UniformGrid>
+
+                <!-- Vendas por Dia (Linha) — largura total -->
+                <controls1:Card Margin="4" Padding="16">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Vendas por Dia — Últimos 30 dias" FontSize="14" FontWeight="SemiBold" Foreground="White"/>
+                        <lvc:CartesianChart
+                            Height="220"
+                            Series="{Binding VendasPorDiaSeries}"
+                            XAxes="{Binding VendasPorDiaXAxes}"
+                            YAxes="{Binding VendasPorDiaYAxes}"
+                            LegendPosition="Hidden"/>
+                    </StackPanel>
+                </controls1:Card>
+
+                <!-- Financeiro + Vendas por Funcionário lado a lado -->
+                <Grid ColumnDefinitions="*,*">
+                    <controls1:Card Grid.Column="0" Margin="4" Padding="16">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Financeiro: A Pagar vs A Receber" FontSize="14" FontWeight="SemiBold" Foreground="White"/>
+                            <lvc:CartesianChart
+                                Height="240"
+                                Series="{Binding FinanceiroPagarReceberSeries}"
+                                XAxes="{Binding FinanceiroPagarReceberXAxes}"
+                                LegendPosition="Bottom"/>
+                        </StackPanel>
+                    </controls1:Card>
+
+                    <controls1:Card Grid.Column="1" Margin="4" Padding="16">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Vendas por Funcionário" FontSize="14" FontWeight="SemiBold" Foreground="White"/>
+                            <lvc:CartesianChart
+                                Height="240"
+                                Series="{Binding VendasPorFuncionarioSeries}"
+                                YAxes="{Binding VendasPorFuncionarioYAxes}"
+                                LegendPosition="Hidden"/>
+                        </StackPanel>
+                    </controls1:Card>
+                </Grid>
+
+                <!-- Estoque por Categoria + Status das Contas lado a lado -->
+                <Grid ColumnDefinitions="*,*">
+                    <controls1:Card Grid.Column="0" Margin="4" Padding="16">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Estoque por Categoria" FontSize="14" FontWeight="SemiBold" Foreground="White"/>
+                            <lvc:PieChart
+                                Height="240"
+                                Series="{Binding EstoquePorCategoriaSeries}"
+                                LegendPosition="Bottom"/>
+                        </StackPanel>
+                    </controls1:Card>
+
+                    <controls1:Card Grid.Column="1" Margin="4" Padding="16">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Status das Contas" FontSize="14" FontWeight="SemiBold" Foreground="White"/>
+                            <lvc:PieChart
+                                Height="240"
+                                Series="{Binding StatusContasSeries}"
+                                LegendPosition="Bottom"/>
+                        </StackPanel>
+                    </controls1:Card>
+                </Grid>
+
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </UserControl>

@@ -6,6 +6,8 @@ using Avalonia.Data.Core.Plugins;
 using System.Linq;
 using System.Net.Http;
 using Avalonia.Markup.Xaml;
+using LiveChartsCore;
+using LiveChartsCore.SkiaSharpView;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using StoreSyncFront.Services;
@@ -23,6 +25,8 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        LiveCharts.Configure(config => config.AddSkiaSharp().AddDefaultMappers().AddLightTheme());
+
         BindingPlugins.DataValidators.RemoveAt(0);
         var collection = new ServiceCollection();
         

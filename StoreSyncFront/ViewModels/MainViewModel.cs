@@ -26,6 +26,7 @@ public partial class MainViewModel : ObservableObject
     private readonly IFinanceService _financeService;
     private readonly ISaleService _saleService;
     private readonly ISaleItemService _saleItemService;
+    private readonly ICommissionService _commissionService;
     
     [ObservableProperty] 
     private string _username = string.Empty;
@@ -36,7 +37,7 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private TabItemViewModel? _selectedTab;
     
-    public MainViewModel(INavigationService navigationService, IAuthService authService, IProductService productService, ICategoryService categoryService, IEmployeeService employeeService, IFinanceService financeService, ISaleService saleService, ISaleItemService saleItemService)
+    public MainViewModel(INavigationService navigationService, IAuthService authService, IProductService productService, ICategoryService categoryService, IEmployeeService employeeService, IFinanceService financeService, ISaleService saleService, ISaleItemService saleItemService, ICommissionService commissionService)
     {
         this._navigationService = navigationService;
         this._authService = authService;
@@ -46,6 +47,7 @@ public partial class MainViewModel : ObservableObject
         this._financeService = financeService;
         this._saleService = saleService;
         this._saleItemService = saleItemService;
+        this._commissionService = commissionService;
         
 
         var loggedUser = _authService.GetLoggedUser();
@@ -60,10 +62,11 @@ public partial class MainViewModel : ObservableObject
         }
 
         // Criar e adicionar a aba inicial (Home)
-        var homeVm = new HomeViewModel(Username);
+        var homeVm = new HomeViewModel(Username, _saleService, _financeService, _productService, _categoryService, _employeeService);
         var homeTab = new TabItemViewModel("Início", homeVm, false, CloseTab);
         Tabs.Add(homeTab);
         SelectedTab = homeTab;
+        _ = homeVm.LoadDataAsync();
     }
     
     [RelayCommand]
@@ -188,6 +191,23 @@ public partial class MainViewModel : ObservableObject
         var salesVm = new SalesViewModel(_saleService, _saleItemService, _productService, _employeeService, _authService);
         await salesVm.LoadDataAsync();
         var tab = new TabItemViewModel("Vendas", salesVm, true, CloseTab);
+        Tabs.Add(tab);
+        SelectedTab = tab;
+    }
+
+    [RelayCommand]
+    private async Task OpenCommissionsTab()
+    {
+        var existingTab = Tabs.FirstOrDefault(t => t.Content is CommissionsViewModel);
+        if (existingTab != null)
+        {
+            SelectedTab = existingTab;
+            return;
+        }
+
+        var vm = new CommissionsViewModel(_commissionService, _employeeService, _financeService);
+        await vm.LoadDataAsync();
+        var tab = new TabItemViewModel("Comissões", vm, true, CloseTab);
         Tabs.Add(tab);
         SelectedTab = tab;
     }

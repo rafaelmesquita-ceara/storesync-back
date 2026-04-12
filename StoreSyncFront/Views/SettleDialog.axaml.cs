@@ -30,7 +30,7 @@ public partial class SettleDialog : Window
         var raw = (AmountBox.Text ?? string.Empty).Replace(',', '.');
         if (!decimal.TryParse(raw, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal amount) || amount <= 0)
         {
-            SnackBarService.Send("Informe um valor válido maior que zero.");
+            SnackBarService.SendWarning("Informe um valor válido maior que zero.");
             return;
         }
 

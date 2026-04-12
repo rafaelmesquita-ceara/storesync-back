@@ -1,4 +1,5 @@
 using System;
+using System.Collections.ObjectModel;
 using System.Net.Http;
 using System.Windows.Input;
 using Avalonia.Controls;
@@ -15,7 +16,9 @@ namespace StoreSyncFront.ViewModels;
 public class MainWindowViewModel : ObservableObject
 {
     private readonly INavigationService _navigationService;
-    public static string SnackBarName { get; } = "SnackbarHost1";
+    
+    public ObservableCollection<ToastModel> Toasts => SnackBarService.Toasts;
+    
     public MainWindowViewModel(INavigationService navigationService, IApiService apiService, IAuthService authService)
     {
         this._navigationService = navigationService;

@@ -11,12 +11,14 @@ namespace StoreSyncBack.Tests.Unit.Services
     public class SaleServiceTests
     {
         private readonly Mock<ISaleRepository> _repoMock;
+        private readonly Mock<ISalePaymentRepository> _salePaymentRepoMock;
         private readonly SaleService _service;
 
         public SaleServiceTests()
         {
             _repoMock = new Mock<ISaleRepository>();
-            _service = new SaleService(_repoMock.Object);
+            _salePaymentRepoMock = new Mock<ISalePaymentRepository>();
+            _service = new SaleService(_repoMock.Object, _salePaymentRepoMock.Object);
         }
 
         #region CreateSaleAsync
@@ -92,22 +94,66 @@ namespace StoreSyncBack.Tests.Unit.Services
         #region FinalizeSaleAsync
 
         [Fact]
-        public async Task FinalizeSaleAsync_SaleIdValido_ChamaRepositorio()
-        {
-            var saleId = Guid.NewGuid();
-            _repoMock.Setup(r => r.FinalizeSaleAsync(saleId)).ReturnsAsync(1);
-
-            var result = await _service.FinalizeSaleAsync(saleId);
-
-            result.Should().Be(1);
-            _repoMock.Verify(r => r.FinalizeSaleAsync(saleId), Times.Once);
-        }
-
-        [Fact]
         public async Task FinalizeSaleAsync_SaleIdVazio_LancaArgumentException()
         {
             await Assert.ThrowsAsync<ArgumentException>(() =>
                 _service.FinalizeSaleAsync(Guid.Empty));
+        }
+
+        [Fact]
+        public async Task FinalizeSaleAsync_PagamentoInsuficiente_LancaInvalidOperationException()
+        {
+            var sale = TestData.CreateSale(totalAmount: 100, status: SaleStatus.Aberta);
+            sale.Items = TestData.CreateSaleItems(1);
+            _repoMock.Setup(r => r.GetSaleByIdAsync(sale.SaleId)).ReturnsAsync(sale);
+            _salePaymentRepoMock.Setup(r => r.GetTotalPaidBySaleIdAsync(sale.SaleId)).ReturnsAsync(80m);
+
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _service.FinalizeSaleAsync(sale.SaleId));
+
+            ex.Message.Should().Contain("Pagamento insuficiente");
+        }
+
+        [Fact]
+        public async Task FinalizeSaleAsync_SemPagamentos_LancaInvalidOperationException()
+        {
+            var sale = TestData.CreateSale(totalAmount: 100, status: SaleStatus.Aberta);
+            sale.Items = TestData.CreateSaleItems(1);
+            _repoMock.Setup(r => r.GetSaleByIdAsync(sale.SaleId)).ReturnsAsync(sale);
+            _salePaymentRepoMock.Setup(r => r.GetTotalPaidBySaleIdAsync(sale.SaleId)).ReturnsAsync(0m);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _service.FinalizeSaleAsync(sale.SaleId));
+        }
+
+        [Fact]
+        public async Task FinalizeSaleAsync_PagamentoExato_TrocoZero()
+        {
+            var sale = TestData.CreateSale(totalAmount: 100, status: SaleStatus.Aberta);
+            sale.Items = TestData.CreateSaleItems(1);
+            _repoMock.Setup(r => r.GetSaleByIdAsync(sale.SaleId)).ReturnsAsync(sale);
+            _salePaymentRepoMock.Setup(r => r.GetTotalPaidBySaleIdAsync(sale.SaleId)).ReturnsAsync(100m);
+            _repoMock.Setup(r => r.FinalizeSaleAsync(sale.SaleId, 0m)).ReturnsAsync(1);
+
+            var result = await _service.FinalizeSaleAsync(sale.SaleId);
+
+            result.Should().Be(1);
+            _repoMock.Verify(r => r.FinalizeSaleAsync(sale.SaleId, 0m), Times.Once);
+        }
+
+        [Fact]
+        public async Task FinalizeSaleAsync_PagamentoExcedente_CalculaTroco()
+        {
+            var sale = TestData.CreateSale(totalAmount: 100, status: SaleStatus.Aberta);
+            sale.Items = TestData.CreateSaleItems(1);
+            _repoMock.Setup(r => r.GetSaleByIdAsync(sale.SaleId)).ReturnsAsync(sale);
+            _salePaymentRepoMock.Setup(r => r.GetTotalPaidBySaleIdAsync(sale.SaleId)).ReturnsAsync(150m);
+            _repoMock.Setup(r => r.FinalizeSaleAsync(sale.SaleId, 50m)).ReturnsAsync(1);
+
+            var result = await _service.FinalizeSaleAsync(sale.SaleId);
+
+            result.Should().Be(1);
+            _repoMock.Verify(r => r.FinalizeSaleAsync(sale.SaleId, 50m), Times.Once);
         }
 
         #endregion

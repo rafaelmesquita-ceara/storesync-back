@@ -158,19 +158,19 @@ public partial class UsersViewModel : ObservableValidator
 
         if (string.IsNullOrWhiteSpace(Password) || Password.Length < 6)
         {
-            SnackBarService.Send("A senha deve ter pelo menos 6 caracteres.");
+            SnackBarService.SendWarning("A senha deve ter pelo menos 6 caracteres.");
             return;
         }
 
         if (Password != ConfirmPassword)
         {
-            SnackBarService.Send("A senha e a confirmação não coincidem.");
+            SnackBarService.SendWarning("A senha e a confirmação não coincidem.");
             return;
         }
 
         if (SelectedEmployee == null)
         {
-            SnackBarService.Send("Selecione um funcionário.");
+            SnackBarService.SendWarning("Selecione um funcionário.");
             return;
         }
 
@@ -207,7 +207,7 @@ public partial class UsersViewModel : ObservableValidator
         var login = row.DraftLogin.Trim();
         if (string.IsNullOrWhiteSpace(login) || login.Length < 3)
         {
-            SnackBarService.Send("O login deve ter pelo menos 3 caracteres.");
+            SnackBarService.SendWarning("O login deve ter pelo menos 3 caracteres.");
             return;
         }
 

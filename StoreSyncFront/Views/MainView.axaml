@@ -19,6 +19,7 @@
                 <MenuItem Header="Produtos" Command="{Binding OpenProductsTabCommand}"/>
                 <MenuItem Header="Funcionários" Command="{Binding OpenEmployeesTabCommand}"/>
                 <MenuItem Header="Clientes" Command="{Binding OpenClientsTabCommand}"/>
+                <MenuItem Header="Formas de Pagamento" Command="{Binding OpenPaymentMethodsTabCommand}"/>
             </MenuItem>
             <MenuItem Header="_Movimentações">
                 <MenuItem Header="Vendas" Command="{Binding OpenSalesTabCommand}" />

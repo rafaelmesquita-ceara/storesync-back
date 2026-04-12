@@ -6,7 +6,7 @@ public interface ISaleRepository
     Task<Sale?> GetSaleByIdAsync(Guid saleId);
     Task<Guid> CreateSaleAsync(Sale sale);
     Task<int> UpdateSaleAsync(Sale sale);
-    Task<int> FinalizeSaleAsync(Guid saleId);
+    Task<int> FinalizeSaleAsync(Guid saleId, decimal troco = 0);
     Task<int> CancelSaleAsync(Guid saleId);
     Task<decimal> GetTotalSalesByEmployeeAndPeriodAsync(Guid employeeId, DateTime startDate, DateTime endDate);
     Task<IEnumerable<Sale>> GetSalesByPeriodAsync(DateTime startDate, DateTime endDate);

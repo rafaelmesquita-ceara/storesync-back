@@ -17,7 +17,7 @@ public class SaleService(IApiService apiService) : ISaleService
         if (response.IsSuccess())
             return JsonConvert.DeserializeObject<PaginatedResult<Sale>>(response.Body) ?? new PaginatedResult<Sale>();
 
-        SnackBarService.Send("Erro ao buscar vendas: " + response.Body);
+        SnackBarService.SendError("Erro ao buscar vendas: " + response.Body);
         return new PaginatedResult<Sale> { Items = new List<Sale>() };
     }
 
@@ -27,7 +27,7 @@ public class SaleService(IApiService apiService) : ISaleService
         if (response.IsSuccess())
             return JsonConvert.DeserializeObject<Sale>(response.Body);
 
-        SnackBarService.Send("Erro ao buscar venda: " + response.Body);
+        SnackBarService.SendError("Erro ao buscar venda: " + response.Body);
         return null;
     }
 
@@ -42,7 +42,7 @@ public class SaleService(IApiService apiService) : ISaleService
             return 0;
         }
 
-        SnackBarService.Send("Erro ao criar venda: " + response.Body);
+        SnackBarService.SendError("Erro ao criar venda: " + response.Body);
         return 1;
     }
 
@@ -52,25 +52,29 @@ public class SaleService(IApiService apiService) : ISaleService
         if (response.IsSuccess())
             return 0;
 
-        SnackBarService.Send("Erro ao atualizar venda: " + response.Body);
+        SnackBarService.SendError("Erro ao atualizar venda: " + response.Body);
         return 1;
     }
 
     public async Task<int> FinalizeSaleAsync(Guid saleId)
     {
         Response response = await apiService.PostAsync($"/api/Sales/{saleId}/finalize", null);
-        SnackBarService.Send(response.IsSuccess()
-            ? "Venda finalizada com sucesso."
-            : "Erro ao finalizar venda: " + response.Body);
+        if (response.IsSuccess())
+            SnackBarService.SendSuccess("Venda finalizada com sucesso."
+            );
+        else
+            SnackBarService.SendError("Erro ao finalizar venda: " + response.Body);
         return response.IsSuccess() ? 0 : 1;
     }
 
     public async Task<int> CancelSaleAsync(Guid saleId)
     {
         Response response = await apiService.PostAsync($"/api/Sales/{saleId}/cancel", null);
-        SnackBarService.Send(response.IsSuccess()
-            ? "Venda cancelada com sucesso."
-            : "Erro ao cancelar venda: " + response.Body);
+        if (response.IsSuccess())
+            SnackBarService.SendSuccess("Venda cancelada com sucesso."
+            );
+        else
+            SnackBarService.SendError("Erro ao cancelar venda: " + response.Body);
         return response.IsSuccess() ? 0 : 1;
     }
 
@@ -79,7 +83,7 @@ public class SaleService(IApiService apiService) : ISaleService
         var bytes = await apiService.DownloadAsync($"/api/Sales/report/pdf?startDate={startDate:yyyy-MM-dd}&endDate={endDate:yyyy-MM-dd}");
         if (bytes == null)
         {
-            SnackBarService.Send("Erro ao gerar relatório de vendas.");
+            SnackBarService.SendError("Erro ao gerar relatório de vendas.");
         }
         return bytes;
     }

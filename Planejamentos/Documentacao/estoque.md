@@ -1,36 +1,18 @@
-# Controle de Estoque
+# Estoque
 
 ## Entidades
 
-**Category** — agrupa produtos.
+**Category:** `CategoryId (Guid PK)`, `Name (único)`, `CreatedAt`
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| CategoryId | Guid | PK |
-| Name | string | Nome (único) |
-| CreatedAt | DateTime | Data de cadastro (UTC) |
-
-**Product** — item vendável.
-
-| Campo | Tipo | Descrição |
-|---|---|---|
-| ProductId | Guid | PK |
-| Reference | string | Código de referência / EAN |
-| Name | string | Nome |
-| CategoryId | Guid | Categoria |
-| Price | decimal | Preço de venda |
-| StockQuantity | int | Quantidade em estoque |
+**Product:** `ProductId (Guid PK)`, `Reference (EAN/código)`, `Name`, `CategoryId (FK)`, `Price (decimal >0)`, `StockQuantity (int ≥0)`
 
 ## Endpoints
 
-**Categorias:** `GET/POST /api/categories` · `GET/PUT/DELETE /api/categories/{id}`
+- Categorias: `GET/POST /api/categories` · `GET/PUT/DELETE /api/categories/{id}`
+- Produtos: `GET/POST /api/products` · `GET/PUT/DELETE /api/products/{id}`
 
-**Produtos:** `GET/POST /api/products` · `GET/PUT/DELETE /api/products/{id}`
+## Regras
 
-## Regras de negócio
-
-- Nome de categoria é único → duplicata retorna `409 Conflict`
-- `Price` > 0; `StockQuantity` ≥ 0
-- Estoque é decrementado automaticamente ao finalizar venda
-- Não é possível vender produto com estoque zero
-- Não é possível deletar categoria com produtos vinculados
+- Nome de categoria único → duplicata retorna 409
+- Estoque decrementado ao finalizar venda; não vende com estoque zero
+- Não deleta categoria com produtos vinculados

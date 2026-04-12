@@ -18,7 +18,7 @@ public class CommissionService(IApiService apiService) : ICommissionService
         if (response.IsSuccess())
             return JsonConvert.DeserializeObject<PaginatedResult<Commission>>(response.Body) ?? new PaginatedResult<Commission>();
 
-        SnackBarService.Send("Erro ao buscar comissões: " + response.Body);
+        SnackBarService.SendError("Erro ao buscar comissões: " + response.Body);
         return new PaginatedResult<Commission> { Items = new List<Commission>() };
     }
 
@@ -28,7 +28,7 @@ public class CommissionService(IApiService apiService) : ICommissionService
         if (response.IsSuccess())
             return JsonConvert.DeserializeObject<Commission>(response.Body);
 
-        SnackBarService.Send("Erro ao buscar comissão: " + response.Body);
+        SnackBarService.SendError("Erro ao buscar comissão: " + response.Body);
         return null;
     }
 
@@ -42,7 +42,7 @@ public class CommissionService(IApiService apiService) : ICommissionService
         Response response = await apiService.GetAsync(url);
         if (!response.IsSuccess())
         {
-            SnackBarService.Send("Erro ao calcular comissão: " + response.Body);
+            SnackBarService.SendError("Erro ao calcular comissão: " + response.Body);
             return (0, 0, 0);
         }
 
@@ -58,11 +58,11 @@ public class CommissionService(IApiService apiService) : ICommissionService
         Response response = await apiService.PostAsync("/api/Commissions", JsonContent.Create(commission));
         if (response.IsSuccess())
         {
-            SnackBarService.Send("Comissão criada com sucesso.");
+            SnackBarService.SendSuccess("Comissão criada com sucesso.");
             return 0;
         }
 
-        SnackBarService.Send("Erro ao criar comissão: " + response.Body);
+        SnackBarService.SendError("Erro ao criar comissão: " + response.Body);
         return 1;
     }
 
@@ -71,11 +71,11 @@ public class CommissionService(IApiService apiService) : ICommissionService
         Response response = await apiService.DeleteAsync($"/api/Commissions/{commissionId}");
         if (response.IsSuccess())
         {
-            SnackBarService.Send("Comissão excluída com sucesso.");
+            SnackBarService.SendSuccess("Comissão excluída com sucesso.");
             return 0;
         }
 
-        SnackBarService.Send("Erro ao excluir comissão: " + response.Body);
+        SnackBarService.SendError("Erro ao excluir comissão: " + response.Body);
         return 1;
     }
 }

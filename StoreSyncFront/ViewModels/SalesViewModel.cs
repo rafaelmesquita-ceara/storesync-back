@@ -22,11 +22,14 @@ public partial class SalesViewModel : ObservableValidator
     private readonly IEmployeeService _employeeService;
     private readonly IAuthService _authService;
     private readonly IClientService _clientService;
+    private readonly ISalePaymentService _salePaymentService;
+    private readonly IPaymentMethodService _paymentMethodService;
 
     public string Title => "Vendas";
 
     public ObservableCollection<SaleViewModel> Sales { get; } = new();
     public ObservableCollection<SaleItemViewModel> SaleItems { get; } = new();
+    public ObservableCollection<SalePaymentViewModel> Payments { get; } = new();
     public ObservableCollection<Employee> Employees { get; } = new();
     public ObservableCollection<Client> Clients { get; } = new();
     private List<SaleViewModel>? _allSales;
@@ -67,6 +70,9 @@ public partial class SalesViewModel : ObservableValidator
     [ObservableProperty] private decimal _totalAmount;
     [ObservableProperty] private int _selectedStatus;
     [ObservableProperty] private SaleItemViewModel? _selectedSaleItem;
+    [ObservableProperty] private SalePaymentViewModel? _selectedPayment;
+    [ObservableProperty] private decimal _totalPaid;
+    [ObservableProperty] private decimal _troco;
 
     public ISaleService SaleService => _saleService;
 
@@ -83,7 +89,9 @@ public partial class SalesViewModel : ObservableValidator
         IProductService productService,
         IEmployeeService employeeService,
         IAuthService authService,
-        IClientService clientService)
+        IClientService clientService,
+        ISalePaymentService salePaymentService,
+        IPaymentMethodService paymentMethodService)
     {
         _saleService = saleService;
         _saleItemService = saleItemService;
@@ -91,12 +99,19 @@ public partial class SalesViewModel : ObservableValidator
         _employeeService = employeeService;
         _authService = authService;
         _clientService = clientService;
+        _salePaymentService = salePaymentService;
+        _paymentMethodService = paymentMethodService;
         ToggleEditCommand = new AsyncRelayCommand(CreateNewSaleAsync);
 
         SaleItems.CollectionChanged += (_, _) =>
         {
             OnPropertyChanged(nameof(CanFinalize));
             OnPropertyChanged(nameof(CanCancel));
+        };
+
+        Payments.CollectionChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(CanFinalize));
         };
     }
 
@@ -154,6 +169,9 @@ public partial class SalesViewModel : ObservableValidator
         TotalAmount = 0;
         SelectedStatus = SaleStatus.Aberta;
         SaleItems.Clear();
+        Payments.Clear();
+        TotalPaid = 0;
+        Troco = 0;
         IsViewOnly = false;
         IsActionsExpanded = false;
         IsEdit = true;
@@ -202,6 +220,8 @@ public partial class SalesViewModel : ObservableValidator
         foreach (var item in result.Items)
             SaleItems.Add(new SaleItemViewModel(item));
 
+        await RefreshPaymentsAsync();
+
         IsViewOnly = viewOnly;
         IsActionsExpanded = false;
         IsEdit = true;
@@ -228,6 +248,10 @@ public partial class SalesViewModel : ObservableValidator
         SelectedStatus = SaleStatus.Aberta;
         SaleItems.Clear();
         SelectedSaleItem = null;
+        Payments.Clear();
+        SelectedPayment = null;
+        TotalPaid = 0;
+        Troco = 0;
     }
 
     [RelayCommand]
@@ -396,13 +420,86 @@ public partial class SalesViewModel : ObservableValidator
         return result.Items;
     }
 
-    public bool CanFinalize => SelectedStatus == SaleStatus.Aberta && SaleItems.Count > 0;
+    public async Task<IEnumerable<PaymentMethod>> GetPaymentMethodsAsync()
+    {
+        return await _paymentMethodService.GetAllAsync();
+    }
+
+    public async Task AddPaymentAsync(PaymentMethod method, decimal amount, int installments,
+        bool surchargeApplied, decimal surchargeAmount)
+    {
+        if (SaleId == Guid.Empty) return;
+
+        var payment = new SalePayment
+        {
+            SaleId           = SaleId,
+            PaymentMethodId  = method.PaymentMethodId,
+            Amount           = amount,
+            Installments     = installments,
+            SurchargeApplied = surchargeApplied,
+            SurchargeAmount  = surchargeAmount
+        };
+
+        var result = await _salePaymentService.AddPaymentAsync(payment);
+        if (result != 0) return;
+
+        await RefreshPaymentsAsync();
+
+        var refreshed = await _saleService.GetSaleByIdAsync(SaleId);
+        if (refreshed != null)
+        {
+            TotalAmount = refreshed.TotalAmount;
+            decimal.TryParse(refreshed.Addition.ToString(CultureInfo.InvariantCulture),
+                NumberStyles.Any, CultureInfo.InvariantCulture, out decimal newAddition);
+            Addition = refreshed.Addition.ToString(CultureInfo.CurrentCulture);
+        }
+    }
+
+    [RelayCommand]
+    public async Task RemovePayment()
+    {
+        if (SelectedPayment == null || SaleId == Guid.Empty) return;
+
+        var result = await _salePaymentService.RemovePaymentAsync(SelectedPayment.SalePaymentId);
+        if (result != 0) return;
+
+        await RefreshPaymentsAsync();
+
+        var refreshed = await _saleService.GetSaleByIdAsync(SaleId);
+        if (refreshed != null)
+        {
+            TotalAmount = refreshed.TotalAmount;
+            Addition = refreshed.Addition.ToString(CultureInfo.CurrentCulture);
+        }
+
+        SelectedPayment = null;
+    }
+
+    public async Task RefreshPaymentsAsync()
+    {
+        if (SaleId == Guid.Empty) return;
+
+        var payments = await _salePaymentService.GetBySaleIdAsync(SaleId);
+        Payments.Clear();
+        foreach (var p in payments)
+            Payments.Add(new SalePaymentViewModel(p));
+
+        TotalPaid = Payments.Sum(p => p.Amount);
+        Troco = Math.Max(0, TotalPaid - TotalAmount);
+
+        OnPropertyChanged(nameof(CanFinalize));
+    }
+
+    public bool CanFinalize => SelectedStatus == SaleStatus.Aberta
+        && SaleItems.Count > 0
+        && TotalPaid >= TotalAmount
+        && TotalAmount > 0;
     public bool CanCancel => SelectedStatus != SaleStatus.Cancelada;
 
     protected override void OnPropertyChanged(System.ComponentModel.PropertyChangedEventArgs e)
     {
         base.OnPropertyChanged(e);
-        if (e.PropertyName is nameof(SelectedStatus) or nameof(SaleItems))
+        if (e.PropertyName is nameof(SelectedStatus) or nameof(SaleItems) or nameof(TotalPaid) or nameof(TotalAmount))
         {
             OnPropertyChanged(nameof(CanFinalize));
             OnPropertyChanged(nameof(CanCancel));

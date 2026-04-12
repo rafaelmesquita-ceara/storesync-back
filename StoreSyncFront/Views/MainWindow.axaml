@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:controls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
+        xmlns:avalonia="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
         x:Class="StoreSyncFront.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
@@ -15,7 +16,48 @@
              to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <vm:MainWindowViewModel/>
     </Design.DataContext>
-    <controls:SnackbarHost x:Name="{Binding SnackBarName}" HostName="{Binding SnackBarName}">
+
+    <Grid>
+        <!-- Main application content -->
         <ContentControl x:Name="ContentHost"/>
-    </controls:SnackbarHost>
+
+        <!-- Custom Toast Overlay -->
+        <ItemsControl ItemsSource="{Binding Toasts}"
+                      VerticalAlignment="Bottom"
+                      HorizontalAlignment="Right"
+                      Margin="24">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Spacing="12" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border Background="{Binding BackgroundColor}"
+                            CornerRadius="8"
+                            Padding="20"
+                            BoxShadow="0 6 16 0 #60000000"
+                            Width="450"
+                            MinHeight="80">
+                        <Grid ColumnDefinitions="Auto, *">
+                            <avalonia:MaterialIcon Grid.Column="0" 
+                                                   Kind="{Binding IconKind}" 
+                                                   Width="40" 
+                                                   Height="40" 
+                                                   Foreground="White" 
+                                                   Margin="0,0,16,0"
+                                                   VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" 
+                                       Text="{Binding Message}" 
+                                       Foreground="White" 
+                                       FontSize="18" 
+                                       FontWeight="Medium" 
+                                       TextWrapping="Wrap"
+                                       VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </Grid>
 </Window>

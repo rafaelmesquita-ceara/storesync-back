@@ -153,7 +153,7 @@
                                     Width="1.5*"
                                     Binding="{Binding StatusLabel}"
                                     Header="Situação" />
-                                <DataGridTemplateColumn Width="100" Header="Ações">
+                                <DataGridTemplateColumn Header="Ações">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="5">
@@ -166,7 +166,7 @@
                                                     <materialIcons:MaterialIcon Width="16" Height="16" Kind="Eye" />
                                                 </controls1:FloatingButton>
                                                 <controls1:FloatingButton
-                                                    Margin="3"
+                                                    Margin="3,3,15,3"
                                                     Classes="Mini"
                                                     Command="{Binding #Root.((vm:SalesViewModel)DataContext).OpenEditCommand}"
                                                     CommandParameter="{Binding SaleId}"
@@ -215,20 +215,40 @@
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <StackPanel Margin="0,0,0,80">
 
-                            <!-- Funcionário -->
-                            <ComboBox
-                                HorizontalAlignment="Stretch"
-                                ItemsSource="{Binding Employees}"
-                                SelectedItem="{Binding SelectedEmployee}"
-                                IsEnabled="{Binding IsViewOnly, Converter={StaticResource InverseBooleanConverter}}"
-                                p1:ComboBoxAssist.Label="Funcionário"
-                                Theme="{StaticResource MaterialOutlineComboBox}">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding Name}" />
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
+                            <!-- Funcionário e Cliente -->
+                            <Grid ColumnDefinitions="*, *">
+                                <ComboBox
+                                    Grid.Column="0"
+                                    Margin="0,0,4,0"
+                                    HorizontalAlignment="Stretch"
+                                    ItemsSource="{Binding Employees}"
+                                    SelectedItem="{Binding SelectedEmployee}"
+                                    IsEnabled="{Binding IsViewOnly, Converter={StaticResource InverseBooleanConverter}}"
+                                    p1:ComboBoxAssist.Label="Funcionário"
+                                    Theme="{StaticResource MaterialOutlineComboBox}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Name}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+
+                                <ComboBox
+                                    Grid.Column="1"
+                                    Margin="4,0,0,0"
+                                    HorizontalAlignment="Stretch"
+                                    ItemsSource="{Binding Clients}"
+                                    SelectedItem="{Binding SelectedClient}"
+                                    IsEnabled="{Binding IsViewOnly, Converter={StaticResource InverseBooleanConverter}}"
+                                    p1:ComboBoxAssist.Label="Cliente"
+                                    Theme="{StaticResource MaterialOutlineComboBox}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Name}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </Grid>
 
                             <Grid ColumnDefinitions="*, *" Margin="0,8,0,0">
                                 <TextBox
@@ -292,16 +312,65 @@
 
                             <Separator Margin="0,12,0,8" />
 
-                            <!-- Valor total -->
-                            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Spacing="8">
-                                <TextBlock
-                                    VerticalAlignment="Center"
-                                    Classes="Headline6"
-                                    Text="Valor Total:" />
-                                <TextBlock
-                                    VerticalAlignment="Center"
-                                    Classes="Headline5"
-                                    Text="{Binding TotalAmount, StringFormat='R$ {0:N2}'}" />
+                            <TextBlock Margin="0,0,0,4" Classes="Body2" Opacity="0.6" Text="Pagamentos" />
+
+                            <!-- Grid de pagamentos -->
+                            <DataGrid
+                                x:Name="PaymentsDataGrid"
+                                Height="140"
+                                AutoGenerateColumns="False"
+                                IsReadOnly="True"
+                                ItemsSource="{Binding Payments}"
+                                SelectedItem="{Binding SelectedPayment}">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Width="2*" Binding="{Binding PaymentMethodName}" Header="Forma" />
+                                    <DataGridTextColumn Width="1*" Binding="{Binding Installments}" Header="Parcelas" />
+                                    <DataGridTextColumn Width="1.5*" Binding="{Binding Amount, StringFormat='{}{0:N2}'}" Header="Valor (R$)" />
+                                    <DataGridTextColumn Width="1.5*" Binding="{Binding SurchargeAmount, StringFormat='{}{0:N2}'}" Header="Taxa (R$)" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+
+                            <!-- Botões Adicionar/Remover pagamento -->
+                            <StackPanel
+                                Margin="0,8,0,0"
+                                Orientation="Horizontal"
+                                Spacing="8"
+                                IsVisible="{Binding IsViewOnly, Converter={StaticResource InverseBooleanConverter}}">
+                                <Button Classes="Outlined" Click="AdicionarPagamentoButton_Click">
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <materialIcons:MaterialIcon Width="16" Height="16" Kind="CreditCardPlus" />
+                                        <TextBlock Text="Adicionar Pagamento" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Classes="Outlined" Command="{Binding RemovePaymentCommand}">
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <materialIcons:MaterialIcon Width="16" Height="16" Kind="Minus" />
+                                        <TextBlock Text="Remover Pagamento" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+
+                            <Separator Margin="0,12,0,8" />
+
+                            <!-- Totais -->
+                            <StackPanel HorizontalAlignment="Right" Spacing="4">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock VerticalAlignment="Center" Classes="Body1" Text="Total Pago:" />
+                                    <TextBlock VerticalAlignment="Center" Classes="Body1"
+                                               Text="{Binding TotalPaid, StringFormat='R$ {0:N2}'}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="8"
+                                            IsVisible="{Binding Troco, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                    <TextBlock VerticalAlignment="Center" Classes="Body1" Text="Troco:" />
+                                    <TextBlock VerticalAlignment="Center" Classes="Body1" Foreground="DarkGreen"
+                                               FontWeight="SemiBold"
+                                               Text="{Binding Troco, StringFormat='R$ {0:N2}'}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock VerticalAlignment="Center" Classes="Headline6" Text="Valor Total:" />
+                                    <TextBlock VerticalAlignment="Center" Classes="Headline5"
+                                               Text="{Binding TotalAmount, StringFormat='R$ {0:N2}'}" />
+                                </StackPanel>
                             </StackPanel>
 
                         </StackPanel>

@@ -17,7 +17,7 @@ public class SaleItemService(IApiService apiService) : ISaleItemService
         if (response.IsSuccess())
             return JsonConvert.DeserializeObject<PaginatedResult<SaleItem>>(response.Body) ?? new PaginatedResult<SaleItem>();
 
-        SnackBarService.Send("Erro ao buscar itens de venda: " + response.Body);
+        SnackBarService.SendError("Erro ao buscar itens de venda: " + response.Body);
         return new PaginatedResult<SaleItem> { Items = new List<SaleItem>() };
     }
 
@@ -27,7 +27,7 @@ public class SaleItemService(IApiService apiService) : ISaleItemService
         if (response.IsSuccess())
             return JsonConvert.DeserializeObject<PaginatedResult<SaleItem>>(response.Body) ?? new PaginatedResult<SaleItem>();
 
-        SnackBarService.Send("Erro ao buscar itens da venda: " + response.Body);
+        SnackBarService.SendError("Erro ao buscar itens da venda: " + response.Body);
         return new PaginatedResult<SaleItem> { Items = new List<SaleItem>() };
     }
 
@@ -37,7 +37,7 @@ public class SaleItemService(IApiService apiService) : ISaleItemService
         if (response.IsSuccess())
             return JsonConvert.DeserializeObject<SaleItem>(response.Body);
 
-        SnackBarService.Send("Erro ao buscar item da venda: " + response.Body);
+        SnackBarService.SendError("Erro ao buscar item da venda: " + response.Body);
         return null;
     }
 
@@ -52,7 +52,7 @@ public class SaleItemService(IApiService apiService) : ISaleItemService
             return 0;
         }
 
-        SnackBarService.Send("Erro ao adicionar item: " + response.Body);
+        SnackBarService.SendError("Erro ao adicionar item: " + response.Body);
         return 1;
     }
 
@@ -62,7 +62,7 @@ public class SaleItemService(IApiService apiService) : ISaleItemService
         if (response.IsSuccess())
             return 0;
 
-        SnackBarService.Send("Erro ao atualizar item: " + response.Body);
+        SnackBarService.SendError("Erro ao atualizar item: " + response.Body);
         return 1;
     }
 
@@ -72,7 +72,7 @@ public class SaleItemService(IApiService apiService) : ISaleItemService
         if (response.IsSuccess())
             return 0;
 
-        SnackBarService.Send("Erro ao remover item: " + response.Body);
+        SnackBarService.SendError("Erro ao remover item: " + response.Body);
         return 1;
     }
 }

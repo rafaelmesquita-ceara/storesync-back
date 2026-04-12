@@ -21,5 +21,7 @@ public class Sale
     public int Status { get; set; } = SaleStatus.Aberta;
     public DateTime SaleDate { get; set; }
     public DateTime CreatedAt { get; set; }
+    public decimal Troco { get; set; }
     public List<SaleItem>? Items { get; set; }
+    public List<SalePayment>? Payments { get; set; }
 }

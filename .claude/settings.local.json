@@ -9,7 +9,8 @@
       "Bash(mkdir -p Unit/Services Unit/Validators Fixtures Helpers)",
       "Bash(dotnet test:*)",
       "Bash(xargs grep:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(grep -E \"\\\\.cs$\")"
     ]
   }
 }

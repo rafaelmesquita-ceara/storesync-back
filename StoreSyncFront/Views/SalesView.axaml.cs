@@ -63,6 +63,27 @@ public partial class SalesView : UserControl
         }
     }
 
+    private async void AdicionarPagamentoButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not SalesViewModel vm) return;
+
+        var methods = await vm.GetPaymentMethodsAsync();
+        var dialog = new AddSalePaymentDialog(methods);
+        var parentWindow = TopLevel.GetTopLevel(this) as Window;
+        var result = await dialog.ShowDialog<(SharedModels.PaymentMethod method, decimal amount,
+            int installments, bool surchargeApplied, decimal surchargeAmount)?>(parentWindow!);
+
+        if (result.HasValue)
+        {
+            await vm.AddPaymentAsync(
+                result.Value.method,
+                result.Value.amount,
+                result.Value.installments,
+                result.Value.surchargeApplied,
+                result.Value.surchargeAmount);
+        }
+    }
+
     private async void FinalizarVendaButton_Click(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not SalesViewModel vm) return;
@@ -107,7 +128,7 @@ public partial class SalesView : UserControl
         {
             await using var stream = await file.OpenWriteAsync();
             await stream.WriteAsync(bytes);
-            StoreSyncFront.Services.SnackBarService.Send("Relatório salvo com sucesso!");
+            StoreSyncFront.Services.SnackBarService.SendSuccess("Relatório salvo com sucesso!");
         }
     }
 }

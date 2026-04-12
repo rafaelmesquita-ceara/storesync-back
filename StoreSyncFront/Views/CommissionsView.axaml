@@ -174,7 +174,8 @@
                                 IsEnabled="{Binding IsViewOnly, Converter={StaticResource InverseBooleanConverter}}"
                                 ItemsSource="{Binding Employees}"
                                 SelectedItem="{Binding SelectedEmployee}"
-                                p1:TextFieldAssist.Label="Funcionário">
+                                p1:ComboBoxAssist.Label="Funcionário"
+                                Theme="{StaticResource MaterialOutlineComboBox}">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
                                         <TextBlock Text="{Binding Name}" />

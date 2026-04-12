@@ -77,14 +77,19 @@ public partial class SalesView : UserControl
         vm.IsActionsExpanded = false;
     }
 
-    private async void GenerateReportButton_Click(object? sender, RoutedEventArgs e)
+    private async void ExportReportButton_Click(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not SalesViewModel vm) return;
+
+        var parentWindow = TopLevel.GetTopLevel(this) as Window;
+        var dialog = new ExportReportDialog();
+        var result = await dialog.ShowDialog<(System.DateTime start, System.DateTime end)?>(parentWindow!);
+        if (result == null) return;
 
         var topLevel = TopLevel.GetTopLevel(this);
         if (topLevel == null) return;
 
-        var bytes = await vm.DownloadReportAsync();
+        var bytes = await vm.DownloadReportAsync(result.Value.start, result.Value.end);
         if (bytes == null) return;
 
         var file = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions

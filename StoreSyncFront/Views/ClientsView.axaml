@@ -1,0 +1,302 @@
+<UserControl
+    x:Class="StoreSyncFront.Views.ClientsView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:StoreSyncFront.Controls"
+    xmlns:controls1="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
+    xmlns:converters="using:StoreSyncFront.Utils"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:materialIcons="using:Material.Icons.Avalonia"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:p1="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
+    xmlns:vm="clr-namespace:StoreSyncFront.ViewModels"
+    x:Name="Root"
+    d:DesignHeight="600"
+    d:DesignWidth="900"
+    x:DataType="vm:ClientsViewModel"
+    mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+    </UserControl.Resources>
+
+    <controls1:Card Margin="16">
+        <Grid Margin="16" RowDefinitions="Auto, Auto, *">
+            <!--  Header  -->
+            <Grid
+                Margin="0,0,0,10"
+                HorizontalAlignment="Stretch"
+                ColumnDefinitions="*, *">
+
+                <TextBlock
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Classes="Headline6"
+                    Text="Cadastro de Clientes" />
+
+                <TextBox
+                    x:Name="SearchTextBox"
+                    Grid.Column="1"
+                    HorizontalAlignment="Stretch"
+                    Classes="solo"
+                    KeyUp="SearchTextBox_KeyUp"
+                    Loaded="SearchTextBox_Loaded"
+                    Text="{Binding SearchBarField}"
+                    Theme="{StaticResource SoloTextBox}"
+                    Watermark="Buscar cliente...">
+
+                    <TextBox.InnerRightContent>
+                        <StackPanel
+                            HorizontalAlignment="Center"
+                            Orientation="Horizontal"
+                            Spacing="5">
+                            <Button
+                                Width="{Binding $self.Bounds.Height}"
+                                Padding="4"
+                                Classes="Flat"
+                                Command="{Binding SearchCommand}">
+                                <materialIcons:MaterialIcon
+                                    Width="24"
+                                    Height="24"
+                                    Kind="Search" />
+                            </Button>
+                            <Button
+                                Width="{Binding $self.Bounds.Height}"
+                                Padding="4"
+                                Classes="Flat"
+                                HotKey="F5"
+                                Command="{Binding RefreshCommand}">
+                                <materialIcons:MaterialIcon
+                                    Width="24"
+                                    Height="24"
+                                    Kind="Refresh" />
+                            </Button>
+                        </StackPanel>
+                    </TextBox.InnerRightContent>
+                </TextBox>
+            </Grid>
+
+            <Separator Grid.Row="1" Margin="0,0,0,10" />
+
+            <!--  Conteúdo  -->
+            <Panel Grid.Row="2">
+                <!--  Lista de clientes  -->
+                <Grid IsVisible="{Binding IsEdit, Converter={StaticResource InverseBooleanConverter}}" RowDefinitions="*, Auto">
+                    <DataGrid
+                        Grid.Row="0"
+                        x:Name="ClientsDataGrid"
+                        AutoGenerateColumns="False"
+                        IsReadOnly="{Binding IsEdit, Converter={StaticResource InverseBooleanConverter}}"
+                        ItemsSource="{Binding Clients}"
+                        KeyDown="ClientsDataGrid_KeyDown">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn
+                                Width="80"
+                                Binding="{Binding Reference}"
+                                Header="Cód." />
+                            <DataGridTextColumn
+                                Width="4*"
+                                Binding="{Binding Name}"
+                                Header="Nome" />
+                            <DataGridTextColumn
+                                Width="2*"
+                                Binding="{Binding CpfCnpj}"
+                                Header="CPF/CNPJ" />
+                            <DataGridTextColumn
+                                Width="2*"
+                                Binding="{Binding Phone}"
+                                Header="Telefone" />
+                            <DataGridTextColumn
+                                Width="3*"
+                                Binding="{Binding Email}"
+                                Header="E-mail" />
+                            <DataGridTextColumn
+                                Width="80"
+                                Binding="{Binding City}"
+                                Header="Cidade" />
+                            <DataGridTextColumn
+                                Width="80"
+                                Binding="{Binding StatusLabel}"
+                                Header="Status" />
+                            <DataGridTemplateColumn Header="Ações">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel
+                                            HorizontalAlignment="Center"
+                                            Orientation="Horizontal"
+                                            Spacing="5">
+                                            <controls1:FloatingButton
+                                                Margin="3"
+                                                Classes="Mini"
+                                                Command="{Binding #Root.((vm:ClientsViewModel)DataContext).OpenEditCommand}"
+                                                CommandParameter="{Binding ClientId}">
+                                                <materialIcons:MaterialIcon
+                                                    Width="16"
+                                                    Height="16"
+                                                    Kind="Edit" />
+                                            </controls1:FloatingButton>
+                                            <controls1:FloatingButton
+                                                Margin="3,3,15,3"
+                                                Background="Red"
+                                                Classes="Mini"
+                                                Command="{Binding #Root.((vm:ClientsViewModel)DataContext).DeleteCommand}"
+                                                CommandParameter="{Binding ClientId}">
+                                                <materialIcons:MaterialIcon
+                                                    Width="16"
+                                                    Height="16"
+                                                    Kind="Delete" />
+                                            </controls1:FloatingButton>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <StackPanel
+                        Grid.Row="1"
+                        Margin="0,10,0,10"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Bottom"
+                        Orientation="Horizontal"
+                        Spacing="10">
+                        <Button Classes="Flat" Command="{Binding PreviousPageCommand}">
+                            <materialIcons:MaterialIcon Kind="ChevronLeft" />
+                        </Button>
+                        <TextBlock VerticalAlignment="Center" Text="{Binding CurrentPage, StringFormat='Página {0}'}" />
+                        <TextBlock VerticalAlignment="Center" Text="{Binding TotalPages, StringFormat='de {0}'}" />
+                        <Button Classes="Flat" Command="{Binding NextPageCommand}">
+                            <materialIcons:MaterialIcon Kind="ChevronRight" />
+                        </Button>
+                    </StackPanel>
+
+                    <controls1:FloatingButton
+                        Grid.Row="0"
+                        Grid.RowSpan="2"
+                        Margin="24"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        Background="DarkGreen"
+                        Command="{Binding ToggleEditCommand}"
+                        HotKey="F1">
+                        <materialIcons:MaterialIcon Kind="Plus" />
+                    </controls1:FloatingButton>
+                </Grid>
+
+                <!--  Formulário de inclusão / edição  -->
+                <Grid IsVisible="{Binding IsEdit}">
+                    <ScrollViewer>
+                        <StackPanel Spacing="4">
+                            <!--  Dados pessoais  -->
+                            <TextBox
+                                p1:TextFieldAssist.Hints="{Binding (DataValidationErrors.Errors)}"
+                                p1:TextFieldAssist.Label="Nome *"
+                                Text="{Binding Name}"
+                                UseFloatingWatermark="True" />
+
+                            <Grid ColumnDefinitions="*, *" Margin="0,4,0,0">
+                                <TextBox
+                                    Grid.Column="0"
+                                    Margin="0,0,4,0"
+                                    p1:TextFieldAssist.Label="CPF / CNPJ"
+                                    Text="{Binding CpfCnpj}"
+                                    UseFloatingWatermark="True" />
+                                <TextBox
+                                    Grid.Column="1"
+                                    Margin="4,0,0,0"
+                                    p1:TextFieldAssist.Label="Telefone"
+                                    Text="{Binding Phone}"
+                                    UseFloatingWatermark="True" />
+                            </Grid>
+
+                            <TextBox
+                                Margin="0,4,0,0"
+                                p1:TextFieldAssist.Label="E-mail"
+                                Text="{Binding Email}"
+                                UseFloatingWatermark="True" />
+
+                            <!--  Endereço  -->
+                            <TextBlock
+                                Margin="0,12,0,4"
+                                Classes="Subtitle2"
+                                Text="Endereço" />
+
+                            <Grid ColumnDefinitions="4*, *" Margin="0,4,0,0">
+                                <TextBox
+                                    Grid.Column="0"
+                                    Margin="0,0,4,0"
+                                    p1:TextFieldAssist.Label="Logradouro"
+                                    Text="{Binding Address}"
+                                    UseFloatingWatermark="True" />
+                                <TextBox
+                                    Grid.Column="1"
+                                    Margin="4,0,0,0"
+                                    p1:TextFieldAssist.Label="Número"
+                                    Text="{Binding AddressNumber}"
+                                    UseFloatingWatermark="True" />
+                            </Grid>
+
+                            <TextBox
+                                Margin="0,4,0,0"
+                                p1:TextFieldAssist.Label="Complemento"
+                                Text="{Binding AddressComplement}"
+                                UseFloatingWatermark="True" />
+
+                            <Grid ColumnDefinitions="3*, *, 2*" Margin="0,4,0,0">
+                                <TextBox
+                                    Grid.Column="0"
+                                    Margin="0,0,4,0"
+                                    p1:TextFieldAssist.Label="Cidade"
+                                    Text="{Binding City}"
+                                    UseFloatingWatermark="True" />
+                                <TextBox
+                                    Grid.Column="1"
+                                    Margin="4,0,4,0"
+                                    p1:TextFieldAssist.Label="UF"
+                                    MaxLength="2"
+                                    Text="{Binding State}"
+                                    UseFloatingWatermark="True" />
+                                <TextBox
+                                    Grid.Column="2"
+                                    Margin="4,0,0,0"
+                                    p1:TextFieldAssist.Label="CEP"
+                                    Text="{Binding PostalCode}"
+                                    UseFloatingWatermark="True" />
+                            </Grid>
+
+                            <!--  Status  -->
+                            <ComboBox
+                                Margin="0,8,0,0"
+                                p1:ComboBoxAssist.Label="Status"
+                                DisplayMemberBinding="{Binding Label}"
+                                ItemsSource="{Binding StatusOptions}"
+                                SelectedValue="{Binding SelectedStatus}"
+                                SelectedValueBinding="{Binding Value}"
+                                Theme="{StaticResource MaterialOutlineComboBox}" />
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <controls1:FloatingButton
+                        Margin="24,24,96,24"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        Background="DarkRed"
+                        Command="{Binding ClearFormCommand}"
+                        HotKey="Escape">
+                        <materialIcons:MaterialIcon Kind="Close" />
+                    </controls1:FloatingButton>
+
+                    <controls1:FloatingButton
+                        Margin="24"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        Background="DarkGreen"
+                        Command="{Binding AddClientCommand}"
+                        HotKey="Enter">
+                        <materialIcons:MaterialIcon Kind="Check" />
+                    </controls1:FloatingButton>
+                </Grid>
+            </Panel>
+        </Grid>
+    </controls1:Card>
+</UserControl>

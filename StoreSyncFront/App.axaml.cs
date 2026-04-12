@@ -41,6 +41,7 @@ public partial class App : Application
         collection.AddCommonServices();
         collection.AddTransient<HomeView>().AddTransient<HomeViewModel>();
         collection.AddTransient<ProductsView>().AddTransient<ProductsViewModel>();
+        collection.AddTransient<ClientsView>().AddTransient<ClientsViewModel>();
         
         var services = collection.BuildServiceProvider();
 

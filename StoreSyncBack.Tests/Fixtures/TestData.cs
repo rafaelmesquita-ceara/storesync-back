@@ -210,6 +210,38 @@ namespace StoreSyncBack.Tests.Fixtures
 
         #endregion
 
+        #region Client
+
+        private static int _clientReferenceCounter;
+
+        private static readonly Faker<Client> ClientFaker = new Faker<Client>("pt_BR")
+            .RuleFor(c => c.ClientId, f => Guid.NewGuid())
+            .RuleFor(c => c.Reference, _ => $"CLI{(++_clientReferenceCounter):D5}")
+            .RuleFor(c => c.Name, f => f.Name.FullName())
+            .RuleFor(c => c.CpfCnpj, f => f.Random.ReplaceNumbers("###########"))
+            .RuleFor(c => c.Phone, f => f.Phone.PhoneNumber("(##) #####-####"))
+            .RuleFor(c => c.Email, f => f.Internet.Email())
+            .RuleFor(c => c.Address, f => f.Address.StreetName())
+            .RuleFor(c => c.AddressNumber, f => f.Address.BuildingNumber())
+            .RuleFor(c => c.AddressComplement, f => f.Address.SecondaryAddress())
+            .RuleFor(c => c.City, f => f.Address.City())
+            .RuleFor(c => c.State, f => f.Address.StateAbbr())
+            .RuleFor(c => c.PostalCode, f => f.Random.ReplaceNumbers("#####-###"))
+            .RuleFor(c => c.Status, _ => ClientStatus.Ativo)
+            .RuleFor(c => c.CreatedAt, f => f.Date.Past())
+            .RuleFor(c => c.UpdatedAt, f => f.Date.Past());
+
+        public static Client CreateClient(int status = ClientStatus.Ativo)
+        {
+            var client = ClientFaker.Generate();
+            client.Status = status;
+            return client;
+        }
+
+        public static List<Client> CreateClients(int count = 5) => ClientFaker.Generate(count);
+
+        #endregion
+
         #region DTOs
 
         public static UserLoginDto CreateUserLoginDto(string login = "testuser", string password = "testpass123")

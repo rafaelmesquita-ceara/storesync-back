@@ -24,6 +24,7 @@ namespace StoreSyncBack.Repositories
                     s.sale_id AS SaleId,
                     s.referencia AS Referencia,
                     s.employee_id AS EmployeeId,
+                    s.client_id AS ClientId,
                     s.discount AS Discount,
                     s.addition AS Addition,
                     s.total_amount AS TotalAmount,
@@ -69,6 +70,7 @@ namespace StoreSyncBack.Repositories
                     s.sale_id AS SaleId,
                     s.referencia AS Referencia,
                     s.employee_id AS EmployeeId,
+                    s.client_id AS ClientId,
                     s.discount AS Discount,
                     s.addition AS Addition,
                     s.total_amount AS TotalAmount,
@@ -151,8 +153,8 @@ namespace StoreSyncBack.Repositories
             sale.Status = SaleStatus.Aberta;
 
             const string insertSale = @"
-                INSERT INTO sale (sale_id, employee_id, discount, addition, total_amount, status, sale_date, created_at)
-                VALUES (@SaleId, @EmployeeId, @Discount, @Addition, @TotalAmount, @Status, @SaleDate, @CreatedAt)
+                INSERT INTO sale (sale_id, employee_id, client_id, discount, addition, total_amount, status, sale_date, created_at)
+                VALUES (@SaleId, @EmployeeId, @ClientId, @Discount, @Addition, @TotalAmount, @Status, @SaleDate, @CreatedAt)
                 RETURNING referencia;
             ";
 
@@ -166,8 +168,9 @@ namespace StoreSyncBack.Repositories
                 UPDATE sale
                 SET
                     employee_id = @EmployeeId,
-                    discount = @Discount,
-                    addition = @Addition,
+                    client_id   = @ClientId,
+                    discount    = @Discount,
+                    addition    = @Addition,
                     total_amount = @TotalAmount
                 WHERE sale_id = @SaleId AND status = @StatusAberta;
             ";
@@ -175,6 +178,7 @@ namespace StoreSyncBack.Repositories
             return await _db.ExecuteAsync(sql, new
             {
                 sale.EmployeeId,
+                sale.ClientId,
                 sale.Discount,
                 sale.Addition,
                 sale.TotalAmount,

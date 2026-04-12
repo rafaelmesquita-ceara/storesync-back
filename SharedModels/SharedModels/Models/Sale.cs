@@ -13,6 +13,8 @@ public class Sale
     public string? Referencia { get; set; }
     public Guid EmployeeId { get; set; }
     public Employee? Employee { get; set; }
+    public Guid? ClientId { get; set; }
+    public Client? Client { get; set; }
     public decimal Discount { get; set; }
     public decimal Addition { get; set; }
     public decimal TotalAmount { get; set; }

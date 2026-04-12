@@ -6,20 +6,33 @@ namespace StoreSyncBack.Services
     public class CommissionService : ICommissionService
     {
         private readonly ICommissionRepository _repo;
+        private readonly ISaleRepository _saleRepo;
+        private readonly IEmployeeRepository _employeeRepo;
 
-        public CommissionService(ICommissionRepository repo)
+        public CommissionService(ICommissionRepository repo, ISaleRepository saleRepo, IEmployeeRepository employeeRepo)
         {
             _repo = repo;
+            _saleRepo = saleRepo;
+            _employeeRepo = employeeRepo;
         }
 
         public Task<IEnumerable<Commission>> GetAllCommissionsAsync()
-        {
-            return _repo.GetAllCommissionsAsync();
-        }
+            => _repo.GetAllCommissionsAsync();
 
         public Task<Commission?> GetCommissionByIdAsync(Guid commissionId)
+            => _repo.GetCommissionByIdAsync(commissionId);
+
+        public async Task<(decimal TotalSales, decimal CommissionRate, decimal CommissionValue)> CalculateAsync(
+            Guid employeeId, DateTime startDate, DateTime endDate)
         {
-            return _repo.GetCommissionByIdAsync(commissionId);
+            var employee = await _employeeRepo.GetEmployeeByIdAsync(employeeId)
+                ?? throw new ArgumentException("Funcionário não encontrado.", nameof(employeeId));
+
+            var totalSales = await _saleRepo.GetTotalSalesByEmployeeAndPeriodAsync(employeeId, startDate, endDate);
+            var rate = employee.CommissionRate;
+            var commissionValue = totalSales * (rate / 100m);
+
+            return (totalSales, rate, commissionValue);
         }
 
         public async Task<int> CreateCommissionAsync(Commission commission)
@@ -27,36 +40,39 @@ namespace StoreSyncBack.Services
             if (commission == null)
                 throw new ArgumentNullException(nameof(commission));
 
+            if (string.IsNullOrWhiteSpace(commission.Reference))
+                throw new ArgumentException("Referência é obrigatória.", nameof(commission.Reference));
+
             if (commission.EmployeeId == Guid.Empty)
-                throw new ArgumentException("EmployeeId é obrigatório.", nameof(commission.EmployeeId));
+                throw new ArgumentException("Funcionário é obrigatório.", nameof(commission.EmployeeId));
 
-            if (commission.Month == default)
-                throw new ArgumentException("Month é obrigatório.", nameof(commission.Month));
+            if (commission.StartDate == default)
+                throw new ArgumentException("Data inicial é obrigatória.", nameof(commission.StartDate));
 
-            if (commission.TotalSales < 0)
-                throw new ArgumentException("TotalSales não pode ser negativo.", nameof(commission.TotalSales));
+            if (commission.EndDate == default)
+                throw new ArgumentException("Data final é obrigatória.", nameof(commission.EndDate));
 
-            if (commission.CommissionValue < 0)
-                throw new ArgumentException("CommissionValue não pode ser negativo.", nameof(commission.CommissionValue));
+            if (commission.StartDate > commission.EndDate)
+                throw new ArgumentException("Data inicial não pode ser maior que a data final.", nameof(commission.StartDate));
 
-            if (commission.CreatedAt == default)
-                commission.CreatedAt = DateTime.UtcNow;
+            var overlapping = await _repo.GetOverlappingCommissionAsync(commission.EmployeeId, commission.StartDate, commission.EndDate);
+            if (overlapping != null)
+                throw new InvalidOperationException(
+                    $"Já existe um comissionamento para este funcionário no período informado. Referência: {overlapping.Reference}");
+
+            var (totalSales, commissionRate, commissionValue) = await CalculateAsync(
+                commission.EmployeeId, commission.StartDate, commission.EndDate);
+
+            if (totalSales == 0)
+                throw new InvalidOperationException(
+                    "Nenhuma venda encontrada para o funcionário no período informado.");
+
+            commission.TotalSales = totalSales;
+            commission.CommissionRate = commissionRate;
+            commission.CommissionValue = commissionValue;
+            commission.CreatedAt = DateTime.UtcNow;
 
             return await _repo.CreateCommissionAsync(commission);
-        }
-
-        public async Task<int> UpdateCommissionAsync(Commission commission)
-        {
-            if (commission == null)
-                throw new ArgumentNullException(nameof(commission));
-
-            if (commission.CommissionId == null || commission.CommissionId == Guid.Empty)
-                throw new ArgumentException("CommissionId inválido.", nameof(commission.CommissionId));
-
-            if (commission.EmployeeId == Guid.Empty)
-                throw new ArgumentException("EmployeeId é obrigatório.", nameof(commission.EmployeeId));
-
-            return await _repo.UpdateCommissionAsync(commission);
         }
 
         public Task<int> DeleteCommissionAsync(Guid commissionId)

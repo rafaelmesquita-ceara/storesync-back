@@ -150,18 +150,26 @@ namespace StoreSyncBack.Tests.Fixtures
 
         #region Commission
 
+        private static int _commissionReferenceCounter;
+
         private static readonly Faker<Commission> CommissionFaker = new Faker<Commission>("pt_BR")
             .RuleFor(c => c.CommissionId, f => Guid.NewGuid())
             .RuleFor(c => c.EmployeeId, f => Guid.NewGuid())
-            .RuleFor(c => c.Month, f => f.Date.Past(1).Date)
+            .RuleFor(c => c.Reference, _ => (++_commissionReferenceCounter).ToString("D3"))
+            .RuleFor(c => c.StartDate, f => f.Date.Past(1).Date)
+            .RuleFor(c => c.EndDate, (f, c) => c.StartDate.AddDays(f.Random.Int(1, 30)))
+            .RuleFor(c => c.CommissionRate, f => f.Random.Decimal(1, 20))
             .RuleFor(c => c.TotalSales, f => f.Random.Decimal(1000, 50000))
-            .RuleFor(c => c.CommissionValue, f => f.Random.Decimal(50, 5000));
+            .RuleFor(c => c.CommissionValue, f => f.Random.Decimal(50, 5000))
+            .RuleFor(c => c.Observation, f => f.Lorem.Sentence());
 
-        public static Commission CreateCommission(decimal? commissionValue = null)
+        public static Commission CreateCommission(string? reference = null, Guid? employeeId = null, DateTime? startDate = null, DateTime? endDate = null)
         {
             var commission = CommissionFaker.Generate();
-            if (commissionValue.HasValue)
-                commission.CommissionValue = commissionValue.Value;
+            if (reference != null) commission.Reference = reference;
+            if (employeeId.HasValue) commission.EmployeeId = employeeId.Value;
+            if (startDate.HasValue) commission.StartDate = startDate.Value;
+            if (endDate.HasValue) commission.EndDate = endDate.Value;
             return commission;
         }
 

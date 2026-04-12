@@ -35,6 +35,7 @@ public static class ServiceCollectionExtensions
         collection.AddSingleton<IFinanceService, FinanceService>();
         collection.AddSingleton<ISaleService, SaleService>();
         collection.AddSingleton<ISaleItemService, SaleItemService>();
+        collection.AddSingleton<ICommissionService, CommissionService>();
         
         collection.AddTransient<LoginView>();
         collection.AddTransient<LoginViewModel>();

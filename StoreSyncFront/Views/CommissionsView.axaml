@@ -1,0 +1,270 @@
+<UserControl
+    x:Class="StoreSyncFront.Views.CommissionsView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls1="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
+    xmlns:converters="using:StoreSyncFront.Utils"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:materialIcons="using:Material.Icons.Avalonia"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:p1="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
+    xmlns:vm="clr-namespace:StoreSyncFront.ViewModels"
+    x:Name="Root"
+    d:DesignHeight="500"
+    d:DesignWidth="900"
+    x:DataType="vm:CommissionsViewModel"
+    mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+    </UserControl.Resources>
+
+    <controls1:Card Margin="16">
+        <Grid Margin="16" RowDefinitions="Auto, Auto, *">
+
+            <!--  Header  -->
+            <Grid
+                Margin="0,0,0,10"
+                HorizontalAlignment="Stretch"
+                ColumnDefinitions="*, *">
+
+                <TextBlock
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Classes="Headline6"
+                    Text="Comissões" />
+
+                <!--  Busca (modo lista)  -->
+                <TextBox
+                    x:Name="SearchTextBox"
+                    Grid.Column="1"
+                    HorizontalAlignment="Stretch"
+                    Classes="solo"
+                    IsVisible="{Binding IsEdit, Converter={StaticResource InverseBooleanConverter}}"
+                    KeyUp="SearchTextBox_KeyUp"
+                    Loaded="SearchTextBox_Loaded"
+                    Text="{Binding SearchBarField}"
+                    Theme="{StaticResource SoloTextBox}"
+                    Watermark="Buscar...">
+                    <TextBox.InnerRightContent>
+                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="5">
+                            <Button Width="{Binding $self.Bounds.Height}" Padding="4" Classes="Flat" Command="{Binding SearchCommand}">
+                                <materialIcons:MaterialIcon Width="24" Height="24" Kind="Search" />
+                            </Button>
+                            <Button Width="{Binding $self.Bounds.Height}" Padding="4" Classes="Flat" HotKey="F5" Command="{Binding RefreshCommand}">
+                                <materialIcons:MaterialIcon Width="24" Height="24" Kind="Refresh" />
+                            </Button>
+                        </StackPanel>
+                    </TextBox.InnerRightContent>
+                </TextBox>
+
+            </Grid>
+
+            <Separator Grid.Row="1" Margin="0,0,0,10" />
+
+            <!--  Conteúdo  -->
+            <Panel Grid.Row="2">
+
+                <!--  Lista  -->
+                <Grid IsVisible="{Binding IsEdit, Converter={StaticResource InverseBooleanConverter}}">
+                    <DataGrid
+                        x:Name="CommissionsDataGrid"
+                        AutoGenerateColumns="False"
+                        IsReadOnly="True"
+                        ItemsSource="{Binding Commissions}"
+                        KeyDown="CommissionsDataGrid_KeyDown">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn
+                                Width="1*"
+                                Binding="{Binding Reference}"
+                                Header="Referência" />
+                            <DataGridTextColumn
+                                Width="2*"
+                                Binding="{Binding EmployeeName}"
+                                Header="Funcionário" />
+                            <DataGridTextColumn
+                                Width="2.5*"
+                                Binding="{Binding Period}"
+                                Header="Período" />
+                            <DataGridTextColumn
+                                Width="1.5*"
+                                Binding="{Binding TotalSales, StringFormat='{}{0:N2}'}"
+                                Header="Total Vendas (R$)" />
+                            <DataGridTextColumn
+                                Width="1*"
+                                Binding="{Binding CommissionRate, StringFormat='{}{0:N2}%'}"
+                                Header="Taxa" />
+                            <DataGridTextColumn
+                                Width="1.5*"
+                                Binding="{Binding CommissionValue, StringFormat='{}{0:N2}'}"
+                                Header="Comissão (R$)" />
+                            <DataGridTemplateColumn Header="Ações">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="5">
+                                            <controls1:FloatingButton
+                                                Margin="3"
+                                                Classes="Mini"
+                                                Command="{Binding #Root.((vm:CommissionsViewModel)DataContext).OpenViewCommand}"
+                                                CommandParameter="{Binding CommissionId}"
+                                                ToolTip.Tip="Visualizar">
+                                                <materialIcons:MaterialIcon Width="16" Height="16" Kind="Eye" />
+                                            </controls1:FloatingButton>
+                                            <controls1:FloatingButton
+                                                Margin="3,3,15,3"
+                                                Background="Red"
+                                                Classes="Mini"
+                                                Command="{Binding #Root.((vm:CommissionsViewModel)DataContext).DeleteCommand}"
+                                                CommandParameter="{Binding CommissionId}"
+                                                ToolTip.Tip="Excluir">
+                                                <materialIcons:MaterialIcon Width="16" Height="16" Kind="Delete" />
+                                            </controls1:FloatingButton>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <controls1:FloatingButton
+                        Margin="24"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        Background="DarkGreen"
+                        Command="{Binding OpenNewCommand}"
+                        HotKey="F1"
+                        ToolTip.Tip="Nova Comissão (F1)">
+                        <materialIcons:MaterialIcon Kind="Plus" />
+                    </controls1:FloatingButton>
+                </Grid>
+
+                <!--  Formulário  -->
+                <Grid IsVisible="{Binding IsEdit}">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="0,0,0,80" Spacing="4">
+
+                            <!--  Referência  -->
+                            <TextBox
+                                p1:TextFieldAssist.Label="Referência"
+                                IsEnabled="{Binding IsViewOnly, Converter={StaticResource InverseBooleanConverter}}"
+                                Text="{Binding Reference}"
+                                UseFloatingWatermark="True" />
+
+                            <!--  Funcionário  -->
+                            <ComboBox
+                                HorizontalAlignment="Stretch"
+                                IsEnabled="{Binding IsViewOnly, Converter={StaticResource InverseBooleanConverter}}"
+                                ItemsSource="{Binding Employees}"
+                                SelectedItem="{Binding SelectedEmployee}"
+                                p1:TextFieldAssist.Label="Funcionário">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Name}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+
+                            <!--  Período  -->
+                            <Grid ColumnDefinitions="*, 8, *" Margin="0,4,0,0">
+                                <DatePicker
+                                    Grid.Column="0"
+                                    HorizontalAlignment="Stretch"
+                                    IsEnabled="{Binding IsViewOnly, Converter={StaticResource InverseBooleanConverter}}"
+                                    SelectedDate="{Binding StartDate}"
+                                    p1:TextFieldAssist.Label="Data Inicial" />
+                                <DatePicker
+                                    Grid.Column="2"
+                                    HorizontalAlignment="Stretch"
+                                    IsEnabled="{Binding IsViewOnly, Converter={StaticResource InverseBooleanConverter}}"
+                                    SelectedDate="{Binding EndDate}"
+                                    p1:TextFieldAssist.Label="Data Final" />
+                            </Grid>
+
+                            <!--  Observação  -->
+                            <TextBox
+                                p1:TextFieldAssist.Label="Observação"
+                                AcceptsReturn="True"
+                                Height="100"
+                                IsEnabled="{Binding IsViewOnly, Converter={StaticResource InverseBooleanConverter}}"
+                                Text="{Binding Observation}"
+                                TextWrapping="Wrap"
+                                UseFloatingWatermark="True"
+                                VerticalContentAlignment="Top" />
+
+                            <!--  Resultado do Cálculo (visível após calcular)  -->
+                            <StackPanel IsVisible="{Binding IsPreview}" Margin="0,16,0,0" Spacing="0">
+                                <Separator Margin="0,0,0,12" />
+                                <TextBlock
+                                    Margin="0,0,0,8"
+                                    Classes="Body1"
+                                    FontWeight="Medium"
+                                    Text="Resultado do Cálculo" />
+                                <Grid ColumnDefinitions="*, 8, *, 8, *">
+                                    <TextBox
+                                        Grid.Column="0"
+                                        p1:TextFieldAssist.Label="Total de Vendas (R$)"
+                                        IsEnabled="False"
+                                        Text="{Binding TotalSalesDisplay}"
+                                        UseFloatingWatermark="True" />
+                                    <TextBox
+                                        Grid.Column="2"
+                                        p1:TextFieldAssist.Label="Taxa de Comissão (%)"
+                                        IsEnabled="False"
+                                        Text="{Binding CommissionRateDisplay}"
+                                        UseFloatingWatermark="True" />
+                                    <TextBox
+                                        Grid.Column="4"
+                                        p1:TextFieldAssist.Label="Valor da Comissão (R$)"
+                                        IsEnabled="False"
+                                        Text="{Binding CommissionValueDisplay}"
+                                        UseFloatingWatermark="True" />
+                                </Grid>
+                            </StackPanel>
+
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!--  Botão Fechar  -->
+                    <controls1:FloatingButton
+                        x:Name="CloseButton"
+                        Margin="24,24,96,24"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        Background="DarkRed"
+                        Command="{Binding ClearFormCommand}"
+                        HotKey="Escape"
+                        ToolTip.Tip="Fechar (Esc)">
+                        <materialIcons:MaterialIcon Kind="Close" />
+                    </controls1:FloatingButton>
+
+                    <!--  Botão Calcular (visível apenas em novo, antes do preview)  -->
+                    <controls1:FloatingButton
+                        x:Name="CalculateButton"
+                        Margin="24,24,168,24"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        Background="DarkBlue"
+                        Click="CalculateButton_Click"
+                        IsVisible="{Binding IsViewOnly, Converter={StaticResource InverseBooleanConverter}}"
+                        ToolTip.Tip="Calcular">
+                        <materialIcons:MaterialIcon Kind="Calculator" />
+                    </controls1:FloatingButton>
+
+                    <!--  Botão Confirmar (visível apenas após calcular, em modo novo)  -->
+                    <controls1:FloatingButton
+                        x:Name="ConfirmButton"
+                        Margin="24"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        Background="DarkGreen"
+                        Click="ConfirmButton_Click"
+                        IsVisible="{Binding ShowConfirmButton}"
+                        ToolTip.Tip="Confirmar (salvar comissão)">
+                        <materialIcons:MaterialIcon Kind="Check" />
+                    </controls1:FloatingButton>
+
+                </Grid>
+            </Panel>
+        </Grid>
+    </controls1:Card>
+</UserControl>

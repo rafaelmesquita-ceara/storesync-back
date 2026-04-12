@@ -32,6 +32,36 @@ namespace StoreSyncBack.Controllers
             return Ok(commission);
         }
 
+        [HttpGet("calculate")]
+        public async Task<IActionResult> Calculate(
+            [FromQuery] Guid employeeId,
+            [FromQuery] DateTime startDate,
+            [FromQuery] DateTime endDate)
+        {
+            try
+            {
+                var (totalSales, commissionRate, commissionValue) =
+                    await _service.CalculateAsync(employeeId, startDate, endDate);
+
+                return Ok(new
+                {
+                    totalSales,
+                    commissionRate,
+                    commissionValue
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Validação Calculate inválida");
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao calcular comissão");
+                return StatusCode(500, "Erro interno.");
+            }
+        }
+
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] Commission commission)
         {
@@ -48,33 +78,14 @@ namespace StoreSyncBack.Controllers
                 _logger.LogWarning(ex, "Validação CreateCommission inválida");
                 return BadRequest(ex.Message);
             }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Regra de negócio CreateCommission violada");
+                return UnprocessableEntity(ex.Message);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erro ao criar comissão");
-                return StatusCode(500, "Erro interno.");
-            }
-        }
-
-        [HttpPut("{id:guid}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] Commission commission)
-        {
-            if (commission.CommissionId == null || id != commission.CommissionId)
-                return BadRequest("Id do caminho diferente do corpo.");
-
-            try
-            {
-                var affected = await _service.UpdateCommissionAsync(commission);
-                if (affected <= 0) return NotFound();
-                return NoContent();
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogWarning(ex, "Validação UpdateCommission inválida");
-                return BadRequest(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Erro ao atualizar comissão");
                 return StatusCode(500, "Erro interno.");
             }
         }

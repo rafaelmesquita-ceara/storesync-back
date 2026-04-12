@@ -272,5 +272,25 @@ namespace StoreSyncBack.Repositories
                 throw;
             }
         }
+
+        public async Task<decimal> GetTotalSalesByEmployeeAndPeriodAsync(Guid employeeId, DateTime startDate, DateTime endDate)
+        {
+            var sql = @"
+                SELECT COALESCE(SUM(total_amount), 0)
+                FROM sale
+                WHERE employee_id = @EmployeeId
+                  AND sale_date::date >= @StartDate
+                  AND sale_date::date <= @EndDate
+                  AND status != @StatusCancelada;
+            ";
+
+            return await _db.ExecuteScalarAsync<decimal>(sql, new
+            {
+                EmployeeId = employeeId,
+                StartDate = startDate.Date,
+                EndDate = endDate.Date,
+                StatusCancelada = SaleStatus.Cancelada
+            });
+        }
     }
 }

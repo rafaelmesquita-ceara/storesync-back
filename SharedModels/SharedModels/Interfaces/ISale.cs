@@ -8,6 +8,7 @@ public interface ISaleRepository
     Task<int> UpdateSaleAsync(Sale sale);
     Task<int> FinalizeSaleAsync(Guid saleId);
     Task<int> CancelSaleAsync(Guid saleId);
+    Task<decimal> GetTotalSalesByEmployeeAndPeriodAsync(Guid employeeId, DateTime startDate, DateTime endDate);
 }
 
 public interface ISaleService

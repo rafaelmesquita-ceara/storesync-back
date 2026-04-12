@@ -1,0 +1,47 @@
+<Window
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
+    x:Class="StoreSyncFront.Views.ConfirmDialog"
+    Title="Confirmação"
+    Width="420"
+    Height="180"
+    CanResize="False"
+    ShowInTaskbar="False"
+    WindowStartupLocation="CenterOwner">
+
+    <controls:Card Margin="16">
+        <Grid RowDefinitions="*, Auto">
+
+            <TextBlock
+                Grid.Row="0"
+                x:Name="MessageText"
+                TextWrapping="Wrap"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Left"
+                Margin="4,0,4,0" />
+
+            <StackPanel
+                Grid.Row="1"
+                Margin="0,12,0,0"
+                HorizontalAlignment="Right"
+                Orientation="Horizontal"
+                Spacing="8">
+                <Button
+                    Classes="Outlined"
+                    Click="NoButton_Click"
+                    Width="80">
+                    Não
+                </Button>
+                <Button
+                    Classes="Raised"
+                    Background="DarkGreen"
+                    Click="YesButton_Click"
+                    Width="80">
+                    Sim
+                </Button>
+            </StackPanel>
+
+        </Grid>
+    </controls:Card>
+</Window>

@@ -1,0 +1,300 @@
+<UserControl
+    x:Class="StoreSyncFront.Views.CaixasView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls1="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
+    xmlns:converters="using:StoreSyncFront.Utils"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:materialIcons="using:Material.Icons.Avalonia"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:StoreSyncFront.ViewModels"
+    x:Name="Root"
+    d:DesignHeight="600"
+    d:DesignWidth="900"
+    x:DataType="vm:CaixasViewModel"
+    mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+    </UserControl.Resources>
+
+    <controls1:Card Margin="16">
+        <Grid Margin="16" RowDefinitions="Auto, Auto, *">
+
+            <!-- Header -->
+            <Grid Grid.Row="0" Margin="0,0,0,10" HorizontalAlignment="Stretch" ColumnDefinitions="*, *">
+
+                <TextBlock
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Classes="Headline6"
+                    Text="Caixas" />
+
+                <!-- Busca (modo lista) -->
+                <TextBox
+                    x:Name="SearchTextBox"
+                    Grid.Column="1"
+                    HorizontalAlignment="Stretch"
+                    Classes="solo"
+                    IsVisible="{Binding IsEdit, Converter={StaticResource InverseBooleanConverter}}"
+                    KeyUp="SearchTextBox_KeyUp"
+                    Loaded="SearchTextBox_Loaded"
+                    Text="{Binding SearchBarField}"
+                    Theme="{StaticResource SoloTextBox}"
+                    Watermark="Buscar caixa...">
+                    <TextBox.InnerRightContent>
+                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="5">
+                            <Button Width="{Binding $self.Bounds.Height}" Padding="4" Classes="Flat" Command="{Binding SearchCommand}">
+                                <materialIcons:MaterialIcon Width="24" Height="24" Kind="Search" />
+                            </Button>
+                            <Button Width="{Binding $self.Bounds.Height}" Padding="4" Classes="Flat" HotKey="F5" Command="{Binding RefreshCommand}">
+                                <materialIcons:MaterialIcon Width="24" Height="24" Kind="Refresh" />
+                            </Button>
+                        </StackPanel>
+                    </TextBox.InnerRightContent>
+                </TextBox>
+
+                <!-- Botões modo formulário -->
+                <StackPanel
+                    Grid.Column="1"
+                    HorizontalAlignment="Right"
+                    IsVisible="{Binding IsEdit}"
+                    Orientation="Horizontal"
+                    Spacing="8">
+
+                    <!-- Exportar PDF -->
+                    <Button
+                        Classes="Flat"
+                        Click="ExportarButton_Click"
+                        ToolTip.Tip="Exportar relatório PDF">
+                        <materialIcons:MaterialIcon Width="22" Height="22" Kind="FileExportOutline" />
+                    </Button>
+
+                    <!-- Ações -->
+                    <StackPanel Orientation="Vertical" Spacing="4">
+                        <Button
+                            Classes="Outlined"
+                            Command="{Binding ToggleActionsCommand}"
+                            IsVisible="{Binding IsCaixaAberto}">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock VerticalAlignment="Center" Text="Ações" />
+                                <materialIcons:MaterialIcon
+                                    Width="16" Height="16"
+                                    IsVisible="{Binding IsActionsExpanded, Converter={StaticResource InverseBooleanConverter}}"
+                                    Kind="ChevronDown" />
+                                <materialIcons:MaterialIcon
+                                    Width="16" Height="16"
+                                    IsVisible="{Binding IsActionsExpanded}"
+                                    Kind="ChevronUp" />
+                            </StackPanel>
+                        </Button>
+
+                        <Border
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            IsVisible="{Binding IsActionsExpanded}"
+                            Opacity="0.95"
+                            Padding="4"
+                            ZIndex="10">
+                            <StackPanel Spacing="2">
+                                <Button
+                                    Classes="Flat"
+                                    Click="FecharCaixaButton_Click"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Left">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <materialIcons:MaterialIcon Width="16" Height="16" Kind="LockOutline" />
+                                        <TextBlock Text="Fechar Caixa" />
+                                    </StackPanel>
+                                </Button>
+                                <Button
+                                    Classes="Flat"
+                                    Click="AddMovimentacaoButton_Click"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Left">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <materialIcons:MaterialIcon Width="16" Height="16" Kind="SwapVertical" />
+                                        <TextBlock Text="Adicionar Movimentação" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+
+            <Separator Grid.Row="1" Margin="0,0,0,10" />
+
+            <!-- Conteúdo -->
+            <Panel Grid.Row="2">
+
+                <!-- Lista -->
+                <Grid IsVisible="{Binding IsEdit, Converter={StaticResource InverseBooleanConverter}}" RowDefinitions="*, Auto">
+                    <DataGrid
+                        Grid.Row="0"
+                        x:Name="CaixasDataGrid"
+                        AutoGenerateColumns="False"
+                        IsReadOnly="True"
+                        ItemsSource="{Binding Caixas}"
+                        KeyDown="CaixasDataGrid_KeyDown">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Width="2*" Binding="{Binding Referencia}" Header="Referência" />
+                            <DataGridTextColumn Width="2*" Binding="{Binding DataAbertura, StringFormat='{}{0:dd/MM/yyyy HH:mm}'}" Header="Abertura" />
+                            <DataGridTextColumn Width="1.5*" Binding="{Binding StatusLabel}" Header="Situação" />
+                            <DataGridTextColumn Width="1.5*" Binding="{Binding ValorAbertura, StringFormat='{}{0:N2}'}" Header="Valor Abertura (R$)" />
+                            <DataGridTextColumn Width="1.5*" Binding="{Binding TotalVendas, StringFormat='{}{0:N2}'}" Header="Total Vendas (R$)" />
+                            <DataGridTemplateColumn Header="Ações">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="5">
+                                            <controls1:FloatingButton
+                                                Margin="3"
+                                                Classes="Mini"
+                                                Click="VerCaixaButton_Click"
+                                                Tag="{Binding CaixaId}"
+                                                ToolTip.Tip="Visualizar">
+                                                <materialIcons:MaterialIcon Width="16" Height="16" Kind="Eye" />
+                                            </controls1:FloatingButton>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <StackPanel
+                        Grid.Row="1"
+                        Margin="0,10,0,10"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Bottom"
+                        Orientation="Horizontal"
+                        Spacing="10">
+                        <Button Classes="Flat" Command="{Binding PreviousPageCommand}">
+                            <materialIcons:MaterialIcon Kind="ChevronLeft" />
+                        </Button>
+                        <TextBlock VerticalAlignment="Center" Text="{Binding CurrentPage, StringFormat='Página {0}'}" />
+                        <TextBlock VerticalAlignment="Center" Text="{Binding TotalPages, StringFormat='de {0}'}" />
+                        <Button Classes="Flat" Command="{Binding NextPageCommand}">
+                            <materialIcons:MaterialIcon Kind="ChevronRight" />
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Formulário detalhado -->
+                <Grid IsVisible="{Binding IsEdit}">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="0,0,0,80" Spacing="12">
+
+                            <!-- Informações do caixa -->
+                            <Grid ColumnDefinitions="*, *">
+                                <StackPanel Grid.Column="0" Spacing="4">
+                                    <TextBlock Classes="Caption" Opacity="0.6" Text="Referência" />
+                                    <TextBlock Classes="Body1" Text="{Binding Referencia}" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Spacing="4">
+                                    <TextBlock Classes="Caption" Opacity="0.6" Text="Situação" />
+                                    <TextBlock Classes="Body1" Text="{Binding StatusLabel}" />
+                                </StackPanel>
+                            </Grid>
+
+                            <Grid ColumnDefinitions="*, *">
+                                <StackPanel Grid.Column="0" Spacing="4">
+                                    <TextBlock Classes="Caption" Opacity="0.6" Text="Data de Abertura" />
+                                    <TextBlock Classes="Body1" Text="{Binding DataAbertura, StringFormat='{}{0:dd/MM/yyyy HH:mm}'}" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Spacing="4">
+                                    <TextBlock Classes="Caption" Opacity="0.6" Text="Data de Fechamento" />
+                                    <TextBlock Classes="Body1" Text="{Binding DataFechamento, StringFormat='{}{0:dd/MM/yyyy HH:mm}'}" />
+                                </StackPanel>
+                            </Grid>
+
+                            <Grid ColumnDefinitions="*, *, *">
+                                <StackPanel Grid.Column="0" Spacing="4">
+                                    <TextBlock Classes="Caption" Opacity="0.6" Text="Valor Abertura (R$)" />
+                                    <TextBlock Classes="Body1" Text="{Binding ValorAbertura, StringFormat='{}{0:N2}'}" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Spacing="4">
+                                    <TextBlock Classes="Caption" Opacity="0.6" Text="Total Vendas (R$)" />
+                                    <TextBlock Classes="Body1" Text="{Binding TotalVendas, StringFormat='{}{0:N2}'}" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="2" Spacing="4">
+                                    <TextBlock Classes="Caption" Opacity="0.6" Text="Valor Fechamento (R$)" />
+                                    <TextBlock Classes="Body1" Text="{Binding ValorFechamento, StringFormat='{}{0:N2}'}" />
+                                </StackPanel>
+                            </Grid>
+
+                            <Grid ColumnDefinitions="*, *, *, *">
+                                <StackPanel Grid.Column="0" Spacing="4">
+                                    <TextBlock Classes="Caption" Opacity="0.6" Text="Total Sangrias (R$)" />
+                                    <TextBlock Classes="Body1" Text="{Binding TotalSangrias, StringFormat='{}{0:N2}'}" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Spacing="4">
+                                    <TextBlock Classes="Caption" Opacity="0.6" Text="Total Suprimentos (R$)" />
+                                    <TextBlock Classes="Body1" Text="{Binding TotalSuprimentos, StringFormat='{}{0:N2}'}" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="2" Spacing="4">
+                                    <TextBlock Classes="Caption" Opacity="0.6" Text="Faltante (R$)" />
+                                    <TextBlock Classes="Body1" Foreground="Red" Text="{Binding ValorFaltante, StringFormat='{}{0:N2}'}" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="3" Spacing="4">
+                                    <TextBlock Classes="Caption" Opacity="0.6" Text="Sobra (R$)" />
+                                    <TextBlock Classes="Body1" Foreground="Green" Text="{Binding ValorSobra, StringFormat='{}{0:N2}'}" />
+                                </StackPanel>
+                            </Grid>
+
+                            <Separator Margin="0,4,0,4" />
+
+                            <!-- Vendas -->
+                            <TextBlock Classes="Body2" Opacity="0.6" Text="Vendas Vinculadas" />
+                            <DataGrid
+                                x:Name="VendasDataGrid"
+                                Height="200"
+                                AutoGenerateColumns="False"
+                                IsReadOnly="True"
+                                ItemsSource="{Binding Vendas}">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Width="1.5*" Binding="{Binding Referencia}" Header="Referência" />
+                                    <DataGridTextColumn Width="2*" Binding="{Binding SaleDate, StringFormat='{}{0:dd/MM/yyyy HH:mm}'}" Header="Data" />
+                                    <DataGridTextColumn Width="2.5*" Binding="{Binding Employee.Name}" Header="Funcionário" />
+                                    <DataGridTextColumn Width="1.5*" Binding="{Binding TotalAmount, StringFormat='{}{0:N2}'}" Header="Total (R$)" />
+                                    <DataGridTextColumn Width="1.5*" Binding="{Binding StatusLabel}" Header="Situação" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+
+                            <Separator Margin="0,4,0,4" />
+
+                            <!-- Movimentações -->
+                            <TextBlock Classes="Body2" Opacity="0.6" Text="Sangrias e Suprimentos" />
+                            <DataGrid
+                                x:Name="MovimentacoesDataGrid"
+                                Height="150"
+                                AutoGenerateColumns="False"
+                                IsReadOnly="True"
+                                ItemsSource="{Binding Movimentacoes}">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Width="1.5*" Binding="{Binding TipoLabel}" Header="Tipo" />
+                                    <DataGridTextColumn Width="3*" Binding="{Binding Descricao}" Header="Descrição" />
+                                    <DataGridTextColumn Width="1.5*" Binding="{Binding Valor, StringFormat='{}{0:N2}'}" Header="Valor (R$)" />
+                                    <DataGridTextColumn Width="2*" Binding="{Binding CreatedAt, StringFormat='{}{0:dd/MM/yyyy HH:mm}'}" Header="Data" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Botão voltar à lista -->
+                    <controls1:FloatingButton
+                        Margin="24"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        Background="DarkRed"
+                        Command="{Binding VoltarListaCommand}"
+                        HotKey="Escape">
+                        <materialIcons:MaterialIcon Kind="Close" />
+                    </controls1:FloatingButton>
+                </Grid>
+            </Panel>
+
+        </Grid>
+    </controls1:Card>
+</UserControl>

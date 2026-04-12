@@ -299,6 +299,43 @@ namespace StoreSyncBack.Tests.Fixtures
 
         #endregion
 
+        #region Caixa
+
+        private static readonly Faker<Caixa> CaixaFaker = new Faker<Caixa>("pt_BR")
+            .RuleFor(c => c.CaixaId, f => Guid.NewGuid())
+            .RuleFor(c => c.Referencia, f => $"CAIXA-{f.Date.Past():ddMMyyyy-HHmm}")
+            .RuleFor(c => c.ValorAbertura, f => f.Random.Decimal(50, 500))
+            .RuleFor(c => c.Status, _ => CaixaStatus.Aberto)
+            .RuleFor(c => c.DataAbertura, f => f.Date.Past());
+
+        public static Caixa CreateCaixa(int status = CaixaStatus.Aberto, decimal? valorAbertura = null)
+        {
+            var caixa = CaixaFaker.Generate();
+            caixa.Status = status;
+            if (valorAbertura.HasValue)
+                caixa.ValorAbertura = valorAbertura.Value;
+            return caixa;
+        }
+
+        private static readonly Faker<MovimentacaoCaixa> MovimentacaoFaker = new Faker<MovimentacaoCaixa>("pt_BR")
+            .RuleFor(m => m.MovimentacaoCaixaId, f => Guid.NewGuid())
+            .RuleFor(m => m.CaixaId, f => Guid.NewGuid())
+            .RuleFor(m => m.Tipo, _ => MovimentacaoTipo.Sangria)
+            .RuleFor(m => m.Descricao, f => f.Lorem.Sentence())
+            .RuleFor(m => m.Valor, f => f.Random.Decimal(10, 200))
+            .RuleFor(m => m.CreatedAt, f => f.Date.Past());
+
+        public static MovimentacaoCaixa CreateMovimentacao(int tipo = MovimentacaoTipo.Sangria, decimal? valor = null)
+        {
+            var mov = MovimentacaoFaker.Generate();
+            mov.Tipo = tipo;
+            if (valor.HasValue)
+                mov.Valor = valor.Value;
+            return mov;
+        }
+
+        #endregion
+
         #region DTOs
 
         public static UserLoginDto CreateUserLoginDto(string login = "testuser", string password = "testpass123")

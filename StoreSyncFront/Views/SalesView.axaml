@@ -204,7 +204,7 @@
                         HorizontalAlignment="Right"
                         VerticalAlignment="Bottom"
                         Background="DarkGreen"
-                        Command="{Binding ToggleEditCommand}"
+                        Click="NovaVendaButton_Click"
                         HotKey="F1">
                         <materialIcons:MaterialIcon Kind="Plus" />
                     </controls1:FloatingButton>

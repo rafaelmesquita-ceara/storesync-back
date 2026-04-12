@@ -7,11 +7,13 @@ namespace StoreSyncBack.Services
     {
         private readonly ISaleRepository _repo;
         private readonly ISalePaymentRepository _salePaymentRepo;
+        private readonly ICaixaRepository _caixaRepo;
 
-        public SaleService(ISaleRepository repo, ISalePaymentRepository salePaymentRepo)
+        public SaleService(ISaleRepository repo, ISalePaymentRepository salePaymentRepo, ICaixaRepository caixaRepo)
         {
             _repo = repo;
             _salePaymentRepo = salePaymentRepo;
+            _caixaRepo = caixaRepo;
         }
 
         public Task<PaginatedResult<Sale>> GetAllSalesAsync(int limit = 50, int offset = 0)
@@ -32,6 +34,11 @@ namespace StoreSyncBack.Services
             if (sale.EmployeeId == Guid.Empty)
                 throw new ArgumentException("EmployeeId é obrigatório.", nameof(sale.EmployeeId));
 
+            var caixaAberto = await _caixaRepo.GetCaixaAbertoAsync();
+            if (caixaAberto == null)
+                throw new InvalidOperationException("Nenhum caixa aberto. Abra um caixa antes de iniciar uma venda.");
+
+            sale.CaixaId = caixaAberto.CaixaId;
             sale.TotalAmount = 0;
             sale.Status = SaleStatus.Aberta;
 

@@ -12,13 +12,17 @@ namespace StoreSyncBack.Tests.Unit.Services
     {
         private readonly Mock<ISaleRepository> _repoMock;
         private readonly Mock<ISalePaymentRepository> _salePaymentRepoMock;
+        private readonly Mock<ICaixaRepository> _caixaRepoMock;
         private readonly SaleService _service;
 
         public SaleServiceTests()
         {
             _repoMock = new Mock<ISaleRepository>();
             _salePaymentRepoMock = new Mock<ISalePaymentRepository>();
-            _service = new SaleService(_repoMock.Object, _salePaymentRepoMock.Object);
+            _caixaRepoMock = new Mock<ICaixaRepository>();
+            // Por padrão, simula um caixa aberto para não quebrar testes existentes
+            _caixaRepoMock.Setup(r => r.GetCaixaAbertoAsync()).ReturnsAsync(TestData.CreateCaixa());
+            _service = new SaleService(_repoMock.Object, _salePaymentRepoMock.Object, _caixaRepoMock.Object);
         }
 
         #region CreateSaleAsync
@@ -50,6 +54,16 @@ namespace StoreSyncBack.Tests.Unit.Services
             sale.EmployeeId = Guid.Empty;
 
             await Assert.ThrowsAsync<ArgumentException>(() =>
+                _service.CreateSaleAsync(sale));
+        }
+
+        [Fact]
+        public async Task CreateSaleAsync_SemCaixaAberto_LancaInvalidOperationException()
+        {
+            _caixaRepoMock.Setup(r => r.GetCaixaAbertoAsync()).ReturnsAsync((Caixa?)null);
+            var sale = TestData.CreateSale();
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _service.CreateSaleAsync(sale));
         }
 

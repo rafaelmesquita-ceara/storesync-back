@@ -22,6 +22,15 @@ public class Sale
     public DateTime SaleDate { get; set; }
     public DateTime CreatedAt { get; set; }
     public decimal Troco { get; set; }
+    public Guid? CaixaId { get; set; }
     public List<SaleItem>? Items { get; set; }
     public List<SalePayment>? Payments { get; set; }
+
+    public string StatusLabel => Status switch
+    {
+        SaleStatus.Aberta => "Aberta",
+        SaleStatus.Finalizada => "Finalizada",
+        SaleStatus.Cancelada => "Cancelada",
+        _ => "Desconhecido"
+    };
 }

@@ -1,0 +1,62 @@
+<Window
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
+    xmlns:p1="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
+    x:Class="StoreSyncFront.Views.FecharCaixaDialog"
+    Title="Fechar Caixa"
+    Width="380"
+    Height="230"
+    CanResize="False"
+    ShowInTaskbar="False"
+    WindowStartupLocation="CenterOwner">
+
+    <controls:Card Margin="16">
+        <Grid RowDefinitions="Auto, Auto, *, Auto">
+
+            <TextBlock
+                Grid.Row="0"
+                Classes="Subtitle1"
+                Text="Informe o valor contado no caixa físico:"
+                Margin="0,0,0,4"
+                TextWrapping="Wrap" />
+
+            <TextBlock
+                Grid.Row="1"
+                Classes="Caption"
+                Opacity="0.6"
+                Text="O sistema calculará automaticamente eventuais sobras ou faltas."
+                Margin="0,0,0,12"
+                TextWrapping="Wrap" />
+
+            <TextBox
+                x:Name="ValorBox"
+                Grid.Row="2"
+                p1:TextFieldAssist.Label="Valor de Fechamento (R$)"
+                UseFloatingWatermark="True"
+                KeyDown="ValorBox_KeyDown" />
+
+            <StackPanel
+                Grid.Row="3"
+                Margin="0,12,0,0"
+                HorizontalAlignment="Right"
+                Orientation="Horizontal"
+                Spacing="8">
+                <Button
+                    Classes="Outlined"
+                    Click="CancelarButton_Click"
+                    Width="100">
+                    Cancelar
+                </Button>
+                <Button
+                    Classes="Raised"
+                    Background="DarkRed"
+                    Click="FecharButton_Click"
+                    Width="100">
+                    Fechar
+                </Button>
+            </StackPanel>
+
+        </Grid>
+    </controls:Card>
+</Window>

@@ -1,0 +1,54 @@
+<Window
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
+    xmlns:p1="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
+    x:Class="StoreSyncFront.Views.AbrirCaixaDialog"
+    Title="Abrir Caixa"
+    Width="380"
+    Height="200"
+    CanResize="False"
+    ShowInTaskbar="False"
+    WindowStartupLocation="CenterOwner">
+
+    <controls:Card Margin="16">
+        <Grid RowDefinitions="Auto, *, Auto">
+
+            <TextBlock
+                Grid.Row="0"
+                Classes="Subtitle1"
+                Text="Informe o valor de abertura do caixa:"
+                Margin="0,0,0,12"
+                TextWrapping="Wrap" />
+
+            <TextBox
+                x:Name="ValorBox"
+                Grid.Row="1"
+                p1:TextFieldAssist.Label="Valor de Abertura (R$)"
+                UseFloatingWatermark="True"
+                KeyDown="ValorBox_KeyDown" />
+
+            <StackPanel
+                Grid.Row="2"
+                Margin="0,12,0,0"
+                HorizontalAlignment="Right"
+                Orientation="Horizontal"
+                Spacing="8">
+                <Button
+                    Classes="Outlined"
+                    Click="CancelarButton_Click"
+                    Width="100">
+                    Cancelar
+                </Button>
+                <Button
+                    Classes="Raised"
+                    Background="DarkGreen"
+                    Click="AbrirButton_Click"
+                    Width="100">
+                    Abrir
+                </Button>
+            </StackPanel>
+
+        </Grid>
+    </controls:Card>
+</Window>

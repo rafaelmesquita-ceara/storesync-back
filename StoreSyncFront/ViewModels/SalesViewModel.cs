@@ -24,6 +24,7 @@ public partial class SalesViewModel : ObservableValidator
     private readonly IClientService _clientService;
     private readonly ISalePaymentService _salePaymentService;
     private readonly IPaymentMethodService _paymentMethodService;
+    private readonly StoreSyncFront.Services.CaixaService _caixaService;
 
     public string Title => "Vendas";
 
@@ -91,7 +92,8 @@ public partial class SalesViewModel : ObservableValidator
         IAuthService authService,
         IClientService clientService,
         ISalePaymentService salePaymentService,
-        IPaymentMethodService paymentMethodService)
+        IPaymentMethodService paymentMethodService,
+        StoreSyncFront.Services.CaixaService caixaService)
     {
         _saleService = saleService;
         _saleItemService = saleItemService;
@@ -101,6 +103,7 @@ public partial class SalesViewModel : ObservableValidator
         _clientService = clientService;
         _salePaymentService = salePaymentService;
         _paymentMethodService = paymentMethodService;
+        _caixaService = caixaService;
         ToggleEditCommand = new AsyncRelayCommand(CreateNewSaleAsync);
 
         SaleItems.CollectionChanged += (_, _) =>
@@ -145,7 +148,18 @@ public partial class SalesViewModel : ObservableValidator
             Clients.Add(c);
     }
 
+    public Task<SharedModels.Caixa?> GetCaixaAbertoAsync() => _caixaService.GetCaixaAbertoAsync();
+
+    public async Task<SharedModels.Caixa?> AbrirCaixaAsync(decimal valorAbertura) =>
+        await _caixaService.AbrirCaixaAsync(valorAbertura);
+
     private async Task CreateNewSaleAsync()
+    {
+        // ToggleEditCommand só é chamado internamente após verificação de caixa feita no code-behind
+        await CriarNovaVendaInternaAsync();
+    }
+
+    public async Task CriarNovaVendaInternaAsync()
     {
         var loggedUser = _authService.GetLoggedUser();
         var defaultEmployee = Employees.FirstOrDefault(e =>

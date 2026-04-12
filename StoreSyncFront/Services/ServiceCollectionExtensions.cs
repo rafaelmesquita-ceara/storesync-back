@@ -39,7 +39,8 @@ public static class ServiceCollectionExtensions
         collection.AddSingleton<IClientService, ClientService>();
         collection.AddSingleton<IPaymentMethodService, PaymentMethodService>();
         collection.AddSingleton<ISalePaymentService, SalePaymentService>();
-        
+        collection.AddSingleton<CaixaService>();
+
         collection.AddTransient<LoginView>();
         collection.AddTransient<LoginViewModel>();
         collection.AddTransient<MainView>();

@@ -14,8 +14,11 @@ namespace StoreSyncBack.Repositories
             _db = db;
         }
 
-        public async Task<IEnumerable<Employee>> GetAllEmployeesAsync()
+        public async Task<PaginatedResult<Employee>> GetAllEmployeesAsync(int limit = 50, int offset = 0)
         {
+            var countSql = "SELECT COUNT(*) FROM employee;";
+            var totalCount = await _db.ExecuteScalarAsync<int>(countSql);
+
             var sql = @"
                 SELECT
                     employee_id AS EmployeeId,
@@ -25,9 +28,18 @@ namespace StoreSyncBack.Repositories
                     commission_rate AS CommissionRate,
                     created_at AS CreatedAt
                 FROM employee
-                ORDER BY name;
+                ORDER BY name
+                LIMIT @Limit OFFSET @Offset;
             ";
-            return await _db.QueryAsync<Employee>(sql);
+            var result = await _db.QueryAsync<Employee>(sql, new { Limit = limit, Offset = offset });
+
+            return new PaginatedResult<Employee>
+            {
+                Items = result,
+                TotalCount = totalCount,
+                Limit = limit,
+                Offset = offset
+            };
         }
 
         public async Task<Employee?> GetEmployeeByIdAsync(Guid employeeId)
@@ -52,7 +64,7 @@ namespace StoreSyncBack.Repositories
                 employee.EmployeeId = Guid.NewGuid();
 
             if (employee.CreatedAt == default)
-                employee.CreatedAt = DateTime.UtcNow;
+                employee.CreatedAt = BrazilDateTime.Now;
 
             var sql = @"
                 INSERT INTO employee (employee_id, name, cpf, role, commission_rate, created_at)

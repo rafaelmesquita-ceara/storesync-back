@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SharedModels;
 using SharedModels.Interfaces;
+using StoreSyncBack.Services;
 
 namespace StoreSyncBack.Controllers
 {
@@ -18,10 +19,30 @@ namespace StoreSyncBack.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] int limit = 50, [FromQuery] int offset = 0)
         {
-            var list = await _service.GetAllSalesAsync();
+            var list = await _service.GetAllSalesAsync(limit, offset);
             return Ok(list);
+        }
+
+        [HttpGet("report/pdf")]
+        public async Task<IActionResult> GetPdfReport(
+            [FromQuery] DateTime startDate, 
+            [FromQuery] DateTime endDate, 
+            [FromServices] SalesPdfReportService reportService,
+            [FromServices] ISaleRepository saleRepository)
+        {
+            try
+            {
+                var sales = await saleRepository.GetSalesByPeriodAsync(startDate, endDate);
+                var pdfBytes = reportService.GenerateSalesReport(sales, startDate, endDate);
+                return File(pdfBytes, "application/pdf", $"Relatorio_Vendas_{DateTime.Now:yyyyMMdd_HHmm}.pdf");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao gerar relatório em PDF.");
+                return StatusCode(500, "Erro ao gerar relatório.");
+            }
         }
 
         [HttpGet("{id:guid}")]

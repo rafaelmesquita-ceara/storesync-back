@@ -18,15 +18,15 @@ namespace StoreSyncBack.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int? type)
+        public async Task<IActionResult> GetAll([FromQuery] int? type, [FromQuery] int limit = 50, [FromQuery] int offset = 0)
         {
             if (type.HasValue)
             {
-                var filtered = await _service.GetAllByTypeAsync(type.Value);
+                var filtered = await _service.GetAllByTypeAsync(type.Value, limit, offset);
                 return Ok(filtered);
             }
 
-            var list = await _service.GetAllFinanceAsync();
+            var list = await _service.GetAllFinanceAsync(limit, offset);
             return Ok(list);
         }
 

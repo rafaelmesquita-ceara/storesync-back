@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <!-- Swagger -->
+    <PackageReference Include="QuestPDF" Version="2026.2.4" />
     <PackageReference Include="Serilog.AspNetCore" Version="8.*" />
     <PackageReference Include="Serilog.Sinks.File" Version="6.*" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.*" />

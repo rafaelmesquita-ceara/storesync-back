@@ -11,14 +11,14 @@ namespace StoreSyncFront.Services;
 
 public class EmployeeService(IApiService apiService) : IEmployeeService
 {
-    public async Task<IEnumerable<Employee>> GetAllEmployeesAsync()
+    public async Task<PaginatedResult<Employee>> GetAllEmployeesAsync(int limit = 50, int offset = 0)
     {
-        Response response = await apiService.GetAsync("/api/employees");
+        Response response = await apiService.GetAsync($"/api/employees?limit={limit}&offset={offset}");
         if (response.IsSuccess())
-            return JsonConvert.DeserializeObject<IEnumerable<Employee>>(response.Body) ?? [];
+            return JsonConvert.DeserializeObject<PaginatedResult<Employee>>(response.Body) ?? new PaginatedResult<Employee>();
 
         SnackBarService.Send("Erro ao buscar funcionários: " + response.Body);
-        return [];
+        return new PaginatedResult<Employee> { Items = new List<Employee>() };
     }
 
     public async Task<Employee?> GetEmployeeByIdAsync(Guid employeeId)

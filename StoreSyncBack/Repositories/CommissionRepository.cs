@@ -20,8 +20,8 @@ namespace StoreSyncBack.Repositories
             c.total_sales AS TotalSales,
             c.commission_value AS CommissionValue,
             c.created_at AS CreatedAt,
-            e.employee_id AS EmployeeId,
             e.name AS Name,
+            e.employee_id AS EmployeeId,
             e.cpf AS Cpf,
             e.role AS Role,
             e.commission_rate AS CommissionRate,
@@ -32,13 +32,17 @@ namespace StoreSyncBack.Repositories
             _db = db;
         }
 
-        public async Task<IEnumerable<Commission>> GetAllCommissionsAsync()
+        public async Task<PaginatedResult<Commission>> GetAllCommissionsAsync(int limit = 50, int offset = 0)
         {
+            var countSql = "SELECT COUNT(*) FROM commission;";
+            var totalCount = await _db.ExecuteScalarAsync<int>(countSql);
+
             var sql = $@"
                 SELECT {SelectColumns}
                 FROM commission c
                 JOIN employee e ON e.employee_id = c.employee_id
-                ORDER BY c.start_date DESC;
+                ORDER BY c.start_date DESC
+                LIMIT @Limit OFFSET @Offset;
             ";
 
             var result = await _db.QueryAsync<Commission, Employee, Commission>(
@@ -48,10 +52,17 @@ namespace StoreSyncBack.Repositories
                     commission.Employee = employee;
                     return commission;
                 },
-                splitOn: "EmployeeId"
+                new { Limit = limit, Offset = offset },
+                splitOn: "Name"
             );
 
-            return result;
+            return new PaginatedResult<Commission>
+            {
+                Items = result,
+                TotalCount = totalCount,
+                Limit = limit,
+                Offset = offset
+            };
         }
 
         public async Task<Commission?> GetCommissionByIdAsync(Guid commissionId)
@@ -71,7 +82,7 @@ namespace StoreSyncBack.Repositories
                     return commission;
                 },
                 new { Id = commissionId },
-                splitOn: "EmployeeId"
+                splitOn: "Name"
             );
 
             return result.FirstOrDefault();
@@ -112,7 +123,7 @@ namespace StoreSyncBack.Repositories
                 commission.CommissionId = Guid.NewGuid();
 
             if (commission.CreatedAt == default)
-                commission.CreatedAt = DateTime.UtcNow;
+                commission.CreatedAt = BrazilDateTime.Now;
 
             var sql = @"
                 INSERT INTO commission (

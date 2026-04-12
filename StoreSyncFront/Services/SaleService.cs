@@ -11,14 +11,14 @@ namespace StoreSyncFront.Services;
 
 public class SaleService(IApiService apiService) : ISaleService
 {
-    public async Task<IEnumerable<Sale>> GetAllSalesAsync()
+    public async Task<PaginatedResult<Sale>> GetAllSalesAsync(int limit = 50, int offset = 0)
     {
-        Response response = await apiService.GetAsync("/api/Sales");
+        Response response = await apiService.GetAsync($"/api/Sales?limit={limit}&offset={offset}");
         if (response.IsSuccess())
-            return JsonConvert.DeserializeObject<IEnumerable<Sale>>(response.Body) ?? new List<Sale>();
+            return JsonConvert.DeserializeObject<PaginatedResult<Sale>>(response.Body) ?? new PaginatedResult<Sale>();
 
         SnackBarService.Send("Erro ao buscar vendas: " + response.Body);
-        return new List<Sale>();
+        return new PaginatedResult<Sale> { Items = new List<Sale>() };
     }
 
     public async Task<Sale?> GetSaleByIdAsync(Guid saleId)
@@ -72,5 +72,15 @@ public class SaleService(IApiService apiService) : ISaleService
             ? "Venda cancelada com sucesso."
             : "Erro ao cancelar venda: " + response.Body);
         return response.IsSuccess() ? 0 : 1;
+    }
+
+    public async Task<byte[]?> DownloadSalesReportAsync(DateTime startDate, DateTime endDate)
+    {
+        var bytes = await apiService.DownloadAsync($"/api/Sales/report/pdf?startDate={startDate:yyyy-MM-dd}&endDate={endDate:yyyy-MM-dd}");
+        if (bytes == null)
+        {
+            SnackBarService.Send("Erro ao gerar relatório de vendas.");
+        }
+        return bytes;
     }
 }

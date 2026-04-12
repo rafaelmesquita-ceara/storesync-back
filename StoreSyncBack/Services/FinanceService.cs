@@ -12,11 +12,11 @@ namespace StoreSyncBack.Services
             _repo = repo;
         }
 
-        public Task<IEnumerable<Finance>> GetAllFinanceAsync()
-            => _repo.GetAllFinanceAsync();
+        public Task<PaginatedResult<Finance>> GetAllFinanceAsync(int limit = 50, int offset = 0)
+            => _repo.GetAllFinanceAsync(limit, offset);
 
-        public Task<IEnumerable<Finance>> GetAllByTypeAsync(int type)
-            => _repo.GetAllByTypeAsync(type);
+        public Task<PaginatedResult<Finance>> GetAllByTypeAsync(int type, int limit = 50, int offset = 0)
+            => _repo.GetAllByTypeAsync(type, limit, offset);
 
         public Task<Finance?> GetFinanceByIdAsync(Guid financeId)
             => _repo.GetFinanceByIdAsync(financeId);
@@ -45,7 +45,7 @@ namespace StoreSyncBack.Services
                 finance.TitleType = FinanceTitleType.Original;
 
             if (finance.CreatedAt == default)
-                finance.CreatedAt = DateTime.UtcNow;
+                finance.CreatedAt = BrazilDateTime.Now;
 
             return await _repo.CreateFinanceAsync(finance);
         }
@@ -94,7 +94,7 @@ namespace StoreSyncBack.Services
             if (settledAmount > finance.Amount)
                 throw new InvalidOperationException("O valor liquidado não pode ser maior que o valor da conta.");
 
-            var settledAt = DateTime.UtcNow;
+            var settledAt = BrazilDateTime.Now;
 
             if (settledAmount == finance.Amount)
             {
@@ -114,7 +114,7 @@ namespace StoreSyncBack.Services
                     TitleType   = FinanceTitleType.Residual,
                     Status      = FinanceStatus.Aberto,
                     ParentId    = financeId,
-                    CreatedAt   = DateTime.UtcNow
+                    CreatedAt   = BrazilDateTime.Now
                 };
 
                 await _repo.CreateFinanceAsync(residual);

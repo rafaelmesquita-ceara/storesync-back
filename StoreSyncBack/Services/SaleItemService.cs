@@ -16,14 +16,14 @@ namespace StoreSyncBack.Services
             _productRepo = productRepo;
         }
 
-        public Task<IEnumerable<SaleItem>> GetAllSaleItemsAsync()
+        public Task<PaginatedResult<SaleItem>> GetAllSaleItemsAsync(int limit = 50, int offset = 0)
         {
-            return _repo.GetAllSaleItemsAsync();
+            return _repo.GetAllSaleItemsAsync(limit, offset);
         }
 
-        public Task<IEnumerable<SaleItem>> GetSaleItemsBySaleIdAsync(Guid saleId)
+        public Task<PaginatedResult<SaleItem>> GetSaleItemsBySaleIdAsync(Guid saleId, int limit = 50, int offset = 0)
         {
-            return _repo.GetSaleItemsBySaleIdAsync(saleId);
+            return _repo.GetSaleItemsBySaleIdAsync(saleId, limit, offset);
         }
 
         public Task<SaleItem?> GetSaleItemByIdAsync(Guid saleItemId)
@@ -63,7 +63,7 @@ namespace StoreSyncBack.Services
                 saleItem.SaleItemId = Guid.NewGuid();
 
             if (saleItem.CreatedAt == default)
-                saleItem.CreatedAt = DateTime.UtcNow;
+                saleItem.CreatedAt = BrazilDateTime.Now;
 
             return await _repo.CreateSaleItemAsync(saleItem);
         }

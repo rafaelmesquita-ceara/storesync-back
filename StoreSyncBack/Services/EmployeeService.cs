@@ -12,9 +12,9 @@ namespace StoreSyncBack.Services
             _repo = repo;
         }
 
-        public Task<IEnumerable<Employee>> GetAllEmployeesAsync()
+        public Task<PaginatedResult<Employee>> GetAllEmployeesAsync(int limit = 50, int offset = 0)
         {
-            return _repo.GetAllEmployeesAsync();
+            return _repo.GetAllEmployeesAsync(limit, offset);
         }
 
         public Task<Employee?> GetEmployeeByIdAsync(Guid employeeId)
@@ -41,7 +41,7 @@ namespace StoreSyncBack.Services
                 employee.EmployeeId = Guid.NewGuid();
 
             if (employee.CreatedAt == default)
-                employee.CreatedAt = DateTime.UtcNow;
+                employee.CreatedAt = BrazilDateTime.Now;
 
             return await _repo.CreateEmployeeAsync(employee);
         }

@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
@@ -41,6 +42,7 @@ public partial class HomeViewModel : ObservableObject
 
     // Gráfico 3 — Vendas por Funcionário (Barras horizontais)
     [ObservableProperty] private ISeries[] _vendasPorFuncionarioSeries = Array.Empty<ISeries>();
+    [ObservableProperty] private Axis[] _vendasPorFuncionarioXAxes = Array.Empty<Axis>();
     [ObservableProperty] private Axis[] _vendasPorFuncionarioYAxes = Array.Empty<Axis>();
 
     // Gráfico 4 — Estoque por Categoria (Rosca)
@@ -78,11 +80,11 @@ public partial class HomeViewModel : ObservableObject
 
             await Task.WhenAll(salesTask, financeTask, productsTask, categoriesTask, employeesTask);
 
-            var sales      = (await salesTask).ToList();
-            var finances   = (await financeTask).ToList();
-            var products   = (await productsTask).ToList();
-            var categories = (await categoriesTask).ToList();
-            var employees  = (await employeesTask).ToList();
+            var sales      = (await salesTask).Items.ToList();
+            var finances   = (await financeTask).Items.ToList();
+            var products   = (await productsTask).Items.ToList();
+            var categories = (await categoriesTask).Items.ToList();
+            var employees  = (await employeesTask).Items.ToList();
 
             BuildKpis(sales, finances);
             BuildVendasPorDia(sales);
@@ -101,9 +103,15 @@ public partial class HomeViewModel : ObservableObject
         }
     }
 
+    [RelayCommand]
+    private async Task ReloadAsync()
+    {
+        await LoadDataAsync();
+    }
+
     private void BuildKpis(List<Sale> sales, List<Finance> finances)
     {
-        var now = DateTime.Now;
+        var now = BrazilDateTime.Now;
         var vendsMes = sales.Where(s =>
             s.Status == SaleStatus.Finalizada &&
             s.SaleDate.Year == now.Year &&
@@ -121,7 +129,7 @@ public partial class HomeViewModel : ObservableObject
 
     private void BuildVendasPorDia(List<Sale> sales)
     {
-        var today = DateTime.Today;
+        var today = BrazilDateTime.Now.Date;
         var start = today.AddDays(-29);
         var labels = new string[30];
         var values = new double[30];
@@ -244,7 +252,22 @@ public partial class HomeViewModel : ObservableObject
 
         VendasPorFuncionarioYAxes = new Axis[]
         {
-            new Axis { Labels = names, TextSize = 11 }
+            new Axis 
+            { 
+                Labels = names, 
+                TextSize = 11,
+                LabelsPaint = new SolidColorPaint(new SKColor(220, 220, 220))
+            }
+        };
+
+        VendasPorFuncionarioXAxes = new Axis[]
+        {
+            new Axis 
+            { 
+                Labeler = value => value.ToString("C0", CultureInfo.GetCultureInfo("pt-BR")), 
+                TextSize = 10,
+                LabelsPaint = new SolidColorPaint(new SKColor(220, 220, 220))
+            }
         };
     }
 

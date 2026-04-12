@@ -5,6 +5,8 @@ services:
     image: postgres:16-alpine
     container_name: storesync-db
     environment:
+      TZ: America/Sao_Paulo
+      PGTZ: America/Sao_Paulo
       POSTGRES_DB: storesync
       POSTGRES_USER: store
       POSTGRES_PASSWORD: storepass
@@ -25,6 +27,7 @@ services:
       dockerfile: Dockerfile
     container_name: storesync-api
     environment:
+      TZ: America/Sao_Paulo
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=storesync;Username=store;Password=storepass
     ports:

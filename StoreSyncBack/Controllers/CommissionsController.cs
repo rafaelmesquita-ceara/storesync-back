@@ -18,9 +18,9 @@ namespace StoreSyncBack.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] int limit = 50, [FromQuery] int offset = 0)
         {
-            var list = await _service.GetAllCommissionsAsync();
+            var list = await _service.GetAllCommissionsAsync(limit, offset);
             return Ok(list);
         }
 

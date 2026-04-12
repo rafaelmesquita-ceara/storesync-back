@@ -1,8 +1,8 @@
-﻿namespace SharedModels.Interfaces;
+namespace SharedModels.Interfaces;
 
 public interface ICategoryRepository
 {
-    Task<IEnumerable<Category>> GetAllCategoriesAsync();
+    Task<PaginatedResult<Category>> GetAllCategoriesAsync(int limit = 50, int offset = 0);
     Task<Category?> GetCategoryByIdAsync(Guid categoryId);
     Task<int> CreateCategoryAsync(Category category);
     Task<int> UpdateCategoryAsync(Category category);
@@ -11,7 +11,7 @@ public interface ICategoryRepository
 
 public interface ICategoryService
 {
-    Task<IEnumerable<Category>> GetAllCategoriesAsync();
+    Task<PaginatedResult<Category>> GetAllCategoriesAsync(int limit = 50, int offset = 0);
     Task<Category?> GetCategoryByIdAsync(Guid categoryId);
     Task<int> CreateCategoryAsync(Category category);
     Task<int> UpdateCategoryAsync(Category category);

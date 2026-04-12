@@ -51,6 +51,28 @@ public partial class UsersViewModel : ObservableValidator
     [ObservableProperty]
     private string _searchBarField = string.Empty;
 
+    [ObservableProperty] private int _currentPage = 1;
+    [ObservableProperty] private int _totalPages = 1;
+    [ObservableProperty] private int _totalCount = 0;
+    private int _pageSize = 50;
+
+    public bool CanPreviousPage => CurrentPage > 1;
+    public bool CanNextPage => CurrentPage < TotalPages;
+
+    [RelayCommand(CanExecute = nameof(CanPreviousPage))]
+    private async Task PreviousPage()
+    {
+        CurrentPage--;
+        await LoadDataAsync();
+    }
+
+    [RelayCommand(CanExecute = nameof(CanNextPage))]
+    private async Task NextPage()
+    {
+        CurrentPage++;
+        await LoadDataAsync();
+    }
+
     private readonly IAuthService _authService;
     private readonly IEmployeeService _employeeService;
 
@@ -84,14 +106,23 @@ public partial class UsersViewModel : ObservableValidator
 
     public async Task LoadDataAsync()
     {
-        var usersTask = _authService.GetAllUsersAsync();
-        var employeesTask = _employeeService.GetAllEmployeesAsync();
+        var offset = (CurrentPage - 1) * _pageSize;
+        var usersTask = _authService.GetAllUsersAsync(_pageSize, offset);
+        var employeesTask = _employeeService.GetAllEmployeesAsync(1000, 0);
+
         await Task.WhenAll(usersTask, employeesTask);
 
-        var employees = (await employeesTask).ToList();
+        var paginatedResult = await usersTask;
+        var userList = paginatedResult.Items.ToList();
+        
+        TotalCount = paginatedResult.TotalCount;
+        TotalPages = (int)Math.Ceiling((double)TotalCount / _pageSize);
+        if (TotalPages == 0) TotalPages = 1;
+
+        var employeesPage = await employeesTask;
+        var employees = employeesPage.Items.ToList();
         var employeeMap = employees.ToDictionary(e => e.EmployeeId);
 
-        var userList = (await usersTask).ToList();
         foreach (var u in userList)
         {
             if (u.EmployeeId.HasValue && employeeMap.TryGetValue(u.EmployeeId.Value, out var emp))
@@ -101,6 +132,9 @@ public partial class UsersViewModel : ObservableValidator
         Users.Clear();
         foreach (var u in userList)
             Users.Add(new UserRowViewModel(u));
+
+        PreviousPageCommand.NotifyCanExecuteChanged();
+        NextPageCommand.NotifyCanExecuteChanged();
 
         var linkedIds = new HashSet<Guid>(userList
             .Select(u => u.EmployeeId)

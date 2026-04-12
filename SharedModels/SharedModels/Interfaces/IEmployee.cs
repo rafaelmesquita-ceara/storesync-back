@@ -1,8 +1,8 @@
-﻿namespace SharedModels.Interfaces;
+namespace SharedModels.Interfaces;
 
 public interface IEmployeeRepository
 {
-    Task<IEnumerable<Employee>> GetAllEmployeesAsync();
+    Task<PaginatedResult<Employee>> GetAllEmployeesAsync(int limit = 50, int offset = 0);
     Task<Employee?> GetEmployeeByIdAsync(Guid employeeId);
     Task<int> CreateEmployeeAsync(Employee employee);
     Task<int> UpdateEmployeeAsync(Employee employee);
@@ -11,7 +11,7 @@ public interface IEmployeeRepository
 
 public interface IEmployeeService
 {
-    Task<IEnumerable<Employee>> GetAllEmployeesAsync();
+    Task<PaginatedResult<Employee>> GetAllEmployeesAsync(int limit = 50, int offset = 0);
     Task<Employee?> GetEmployeeByIdAsync(Guid employeeId);
     Task<int> CreateEmployeeAsync(Employee employee);
     Task<int> UpdateEmployeeAsync(Employee employee);

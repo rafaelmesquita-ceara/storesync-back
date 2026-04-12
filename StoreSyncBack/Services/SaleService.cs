@@ -12,9 +12,9 @@ namespace StoreSyncBack.Services
             _repo = repo;
         }
 
-        public Task<IEnumerable<Sale>> GetAllSalesAsync()
+        public Task<PaginatedResult<Sale>> GetAllSalesAsync(int limit = 50, int offset = 0)
         {
-            return _repo.GetAllSalesAsync();
+            return _repo.GetAllSalesAsync(limit, offset);
         }
 
         public Task<Sale?> GetSaleByIdAsync(Guid saleId)
@@ -68,6 +68,11 @@ namespace StoreSyncBack.Services
                 throw new ArgumentException("SaleId inválido.", nameof(saleId));
 
             return await _repo.CancelSaleAsync(saleId);
+        }
+
+        public Task<byte[]?> DownloadSalesReportAsync(DateTime startDate, DateTime endDate)
+        {
+            throw new NotImplementedException();
         }
     }
 }

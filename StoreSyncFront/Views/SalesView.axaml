@@ -20,10 +20,10 @@
     </UserControl.Resources>
 
     <controls1:Card Margin="16">
-        <Grid Margin="16" RowDefinitions="Auto, Auto, *">
+        <Grid Margin="16" RowDefinitions="Auto, Auto, Auto, *">
 
             <!-- Header -->
-            <Grid Margin="0,0,0,10" HorizontalAlignment="Stretch" ColumnDefinitions="*, *">
+            <Grid Grid.Row="0" Margin="0,0,0,10" HorizontalAlignment="Stretch" ColumnDefinitions="*, *">
 
                 <TextBlock
                     Grid.Column="0"
@@ -115,14 +115,35 @@
                 </StackPanel>
             </Grid>
 
-            <Separator Grid.Row="1" Margin="0,0,0,10" />
+            <!-- Relatório -->
+            <StackPanel 
+                Grid.Row="1" 
+                Orientation="Horizontal" 
+                Spacing="10" 
+                Margin="0,0,0,10" 
+                IsVisible="{Binding IsEdit, Converter={StaticResource InverseBooleanConverter}}">
+                
+                <TextBlock Text="Relatório de:" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                <CalendarDatePicker SelectedDate="{Binding ReportStartDate}" />
+                <TextBlock Text="Até:" VerticalAlignment="Center" FontWeight="SemiBold" />
+                <CalendarDatePicker SelectedDate="{Binding ReportEndDate}" />
+                
+                <Button Classes="Flat" Click="GenerateReportButton_Click" ToolTip.Tip="Gerar PDF de Vendas Finalizadas">
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                        <materialIcons:MaterialIcon Kind="FilePdfBox" Foreground="DarkRed" />
+                        <TextBlock Text="Baixar PDF" VerticalAlignment="Center" Foreground="DarkRed" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+
+            <Separator Grid.Row="2" Margin="0,0,0,10" />
 
             <!-- Conteúdo -->
-            <Panel Grid.Row="2">
+            <Panel Grid.Row="3">
 
                 <!-- Lista -->
-                <Grid IsVisible="{Binding IsEdit, Converter={StaticResource InverseBooleanConverter}}">
-                    <RefreshContainer PullDirection="TopToBottom" RefreshRequested="RefreshContainer_RefreshRequested">
+                <Grid IsVisible="{Binding IsEdit, Converter={StaticResource InverseBooleanConverter}}" RowDefinitions="*, Auto">
+                    <RefreshContainer Grid.Row="0" PullDirection="TopToBottom" RefreshRequested="RefreshContainer_RefreshRequested">
                         <DataGrid
                             x:Name="SalesDataGrid"
                             AutoGenerateColumns="False"
@@ -178,7 +199,25 @@
                         </DataGrid>
                     </RefreshContainer>
 
+                    <StackPanel
+                        Grid.Row="1"
+                        Margin="0,10,0,10"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Bottom"
+                        Orientation="Horizontal"
+                        Spacing="10">
+                        <Button Classes="Flat" Command="{Binding PreviousPageCommand}">
+                            <materialIcons:MaterialIcon Kind="ChevronLeft" />
+                        </Button>
+                        <TextBlock VerticalAlignment="Center" Text="{Binding CurrentPage, StringFormat='Página {0}'}" />
+                        <TextBlock VerticalAlignment="Center" Text="{Binding TotalPages, StringFormat='de {0}'}" />
+                        <Button Classes="Flat" Command="{Binding NextPageCommand}">
+                            <materialIcons:MaterialIcon Kind="ChevronRight" />
+                        </Button>
+                    </StackPanel>
+
                     <controls1:FloatingButton
+                        Grid.Row="0" Grid.RowSpan="2"
                         Margin="24"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Bottom"

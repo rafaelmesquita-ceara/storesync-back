@@ -14,9 +14,9 @@ namespace StoreSyncBack.Services
             _repo = repo;
         }
 
-        public Task<IEnumerable<Category>> GetAllCategoriesAsync()
+        public Task<PaginatedResult<Category>> GetAllCategoriesAsync(int limit = 50, int offset = 0)
         {
-            return _repo.GetAllCategoriesAsync();
+            return _repo.GetAllCategoriesAsync(limit, offset);
         }
 
         public Task<Category?> GetCategoryByIdAsync(Guid categoryId)
@@ -35,7 +35,7 @@ namespace StoreSyncBack.Services
 
             // Força CreatedAt
             if (category.CreatedAt == default)
-                category.CreatedAt = DateTime.UtcNow;
+                category.CreatedAt = BrazilDateTime.Now;
 
             try
             {

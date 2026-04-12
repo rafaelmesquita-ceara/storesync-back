@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
 using SharedModels;
 using StoreSyncFront.ViewModels;
 
@@ -74,5 +75,34 @@ public partial class SalesView : UserControl
         if (DataContext is not SalesViewModel vm) return;
         await vm.CancelSaleAsync();
         vm.IsActionsExpanded = false;
+    }
+
+    private async void GenerateReportButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not SalesViewModel vm) return;
+
+        var topLevel = TopLevel.GetTopLevel(this);
+        if (topLevel == null) return;
+
+        var bytes = await vm.DownloadReportAsync();
+        if (bytes == null) return;
+
+        var file = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "Salvar Relatório de Vendas",
+            DefaultExtension = "pdf",
+            SuggestedFileName = $"Relatorio_Vendas_{System.DateTime.Now:yyyyMMdd}.pdf",
+            FileTypeChoices = new[]
+            {
+                new FilePickerFileType("PDF Document") { Patterns = new[] { "*.pdf" } }
+            }
+        });
+
+        if (file != null)
+        {
+            await using var stream = await file.OpenWriteAsync();
+            await stream.WriteAsync(bytes);
+            StoreSyncFront.Services.SnackBarService.Send("Relatório salvo com sucesso!");
+        }
     }
 }

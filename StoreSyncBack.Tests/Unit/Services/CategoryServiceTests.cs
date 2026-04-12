@@ -26,32 +26,34 @@ namespace StoreSyncBack.Tests.Unit.Services
         {
             // Arrange
             var expectedCategories = TestData.CreateCategories(3);
-            _categoryRepoMock.Setup(r => r.GetAllCategoriesAsync())
-                .ReturnsAsync(expectedCategories);
+            var paginated = new PaginatedResult<Category> { Items = expectedCategories, TotalCount = 3 };
+            _categoryRepoMock.Setup(r => r.GetAllCategoriesAsync(It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync(paginated);
 
             // Act
             var result = await _categoryService.GetAllCategoriesAsync();
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().HaveCount(3);
-            result.Should().BeEquivalentTo(expectedCategories);
-            _categoryRepoMock.Verify(r => r.GetAllCategoriesAsync(), Times.Once);
+            result.Items.Should().HaveCount(3);
+            result.Items.Should().BeEquivalentTo(expectedCategories);
+            _categoryRepoMock.Verify(r => r.GetAllCategoriesAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
         }
 
         [Fact]
         public async Task GetAllCategoriesAsync_NenhumaCategoria_RetornaListaVazia()
         {
             // Arrange
-            _categoryRepoMock.Setup(r => r.GetAllCategoriesAsync())
-                .ReturnsAsync(new List<Category>());
+            var paginated = new PaginatedResult<Category> { Items = new List<Category>(), TotalCount = 0 };
+            _categoryRepoMock.Setup(r => r.GetAllCategoriesAsync(It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync(paginated);
 
             // Act
             var result = await _categoryService.GetAllCategoriesAsync();
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeEmpty();
+            result.Items.Should().BeEmpty();
         }
 
         #endregion

@@ -54,16 +54,17 @@ namespace StoreSyncBack.Tests.Unit.Services
         {
             // Arrange
             var expectedUsers = TestData.CreateUsers(3);
-            _userRepoMock.Setup(r => r.GetAllUsersAsync())
-                .ReturnsAsync(expectedUsers);
+            var paginated = new PaginatedResult<User> { Items = expectedUsers, TotalCount = 3 };
+            _userRepoMock.Setup(r => r.GetAllUsersAsync(It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync(paginated);
 
             // Act
             var result = await _userService.GetAllUsersAsync();
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().HaveCount(3);
-            _userRepoMock.Verify(r => r.GetAllUsersAsync(), Times.Once);
+            result.Items.Should().HaveCount(3);
+            _userRepoMock.Verify(r => r.GetAllUsersAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
         }
 
         #endregion

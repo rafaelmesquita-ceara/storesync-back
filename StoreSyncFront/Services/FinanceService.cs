@@ -11,24 +11,24 @@ namespace StoreSyncFront.Services;
 
 public class FinanceService(IApiService apiService) : IFinanceService
 {
-    public async Task<IEnumerable<Finance>> GetAllFinanceAsync()
+    public async Task<PaginatedResult<Finance>> GetAllFinanceAsync(int limit = 50, int offset = 0)
     {
-        Response response = await apiService.GetAsync("/api/Finance");
+        Response response = await apiService.GetAsync($"/api/Finance?limit={limit}&offset={offset}");
         if (response.IsSuccess())
-            return JsonConvert.DeserializeObject<IEnumerable<Finance>>(response.Body) ?? new List<Finance>();
+            return JsonConvert.DeserializeObject<PaginatedResult<Finance>>(response.Body) ?? new PaginatedResult<Finance>();
 
         SnackBarService.Send("Erro ao buscar registros financeiros: " + response.Body);
-        return new List<Finance>();
+        return new PaginatedResult<Finance> { Items = new List<Finance>() };
     }
 
-    public async Task<IEnumerable<Finance>> GetAllByTypeAsync(int type)
+    public async Task<PaginatedResult<Finance>> GetAllByTypeAsync(int type, int limit = 50, int offset = 0)
     {
-        Response response = await apiService.GetAsync($"/api/Finance?type={type}");
+        Response response = await apiService.GetAsync($"/api/Finance?type={type}&limit={limit}&offset={offset}");
         if (response.IsSuccess())
-            return JsonConvert.DeserializeObject<IEnumerable<Finance>>(response.Body) ?? new List<Finance>();
+            return JsonConvert.DeserializeObject<PaginatedResult<Finance>>(response.Body) ?? new PaginatedResult<Finance>();
 
         SnackBarService.Send("Erro ao buscar registros financeiros: " + response.Body);
-        return new List<Finance>();
+        return new PaginatedResult<Finance> { Items = new List<Finance>() };
     }
 
     public async Task<Finance?> GetFinanceByIdAsync(Guid financeId)

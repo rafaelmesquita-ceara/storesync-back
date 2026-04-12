@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -21,6 +21,28 @@ public partial class ProductsViewModel : ObservableValidator
 {
     [ObservableProperty]
     private string _searchBarField = string.Empty;
+
+    [ObservableProperty] private int _currentPage = 1;
+    [ObservableProperty] private int _totalPages = 1;
+    [ObservableProperty] private int _totalCount = 0;
+    private int _pageSize = 50;
+
+    public bool CanPreviousPage => CurrentPage > 1;
+    public bool CanNextPage => CurrentPage < TotalPages;
+
+    [RelayCommand(CanExecute = nameof(CanPreviousPage))]
+    private async Task PreviousPage()
+    {
+        CurrentPage--;
+        await LoadDataAsync();
+    }
+
+    [RelayCommand(CanExecute = nameof(CanNextPage))]
+    private async Task NextPage()
+    {
+        CurrentPage++;
+        await LoadDataAsync();
+    }
 
     private readonly IProductService _productService;
     private readonly ICategoryService _categoryService;
@@ -69,21 +91,30 @@ public partial class ProductsViewModel : ObservableValidator
 
     public async Task LoadDataAsync()
     {
-        var products = await _productService.GetAllProductsAsync();
+        var offset = (CurrentPage - 1) * _pageSize;
+        var paginatedResult = await _productService.GetAllProductsAsync(_pageSize, offset);
+        
+        TotalCount = paginatedResult.TotalCount;
+        TotalPages = (int)Math.Ceiling((double)TotalCount / _pageSize);
+        if (TotalPages == 0) TotalPages = 1;
+
         Products.Clear();
-        foreach (var p in products)
+        foreach (var p in paginatedResult.Items)
         {
             Products.Add(new ProductViewModel(p));
         }
 
-        var categories = await _categoryService.GetAllCategoriesAsync();
+        var categoriesResult = await _categoryService.GetAllCategoriesAsync(1000, 0);
         Categories.Clear();
-        foreach (var category in categories)
+        foreach (var category in categoriesResult.Items)
         {
             Categories.Add(category);
         }
 
-        if (Products != null && Products.Any())
+        PreviousPageCommand.NotifyCanExecuteChanged();
+        NextPageCommand.NotifyCanExecuteChanged();
+
+        if (Products.Any())
             _allProducts = Products.ToList();
     }
 
@@ -227,9 +258,9 @@ public partial class ProductsViewModel : ObservableValidator
     public async Task AddCategoryAsync(string name)
     {
         await _categoryService.CreateCategoryAsync(new Category { Name = name });
-        var categories = await _categoryService.GetAllCategoriesAsync();
+        var categoriesResult = await _categoryService.GetAllCategoriesAsync(1000, 0);
         Categories.Clear();
-        foreach (var c in categories)
+        foreach (var c in categoriesResult.Items)
             Categories.Add(c);
         SelectedCategory = Categories.LastOrDefault(c => c.Name == name);
     }

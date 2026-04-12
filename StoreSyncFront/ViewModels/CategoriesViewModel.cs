@@ -54,6 +54,28 @@ public partial class CategoriesViewModel : ObservableObject
     [ObservableProperty] private string _searchBarField = string.Empty;
     [ObservableProperty] private string _newCategoryName = string.Empty;
 
+    [ObservableProperty] private int _currentPage = 1;
+    [ObservableProperty] private int _totalPages = 1;
+    [ObservableProperty] private int _totalCount = 0;
+    private int _pageSize = 50;
+
+    public bool CanPreviousPage => CurrentPage > 1;
+    public bool CanNextPage => CurrentPage < TotalPages;
+
+    [RelayCommand(CanExecute = nameof(CanPreviousPage))]
+    private async Task PreviousPage()
+    {
+        CurrentPage--;
+        await LoadDataAsync();
+    }
+
+    [RelayCommand(CanExecute = nameof(CanNextPage))]
+    private async Task NextPage()
+    {
+        CurrentPage++;
+        await LoadDataAsync();
+    }
+
     public CategoriesViewModel(ICategoryService categoryService)
     {
         _categoryService = categoryService;
@@ -61,10 +83,20 @@ public partial class CategoriesViewModel : ObservableObject
 
     public async Task LoadDataAsync()
     {
-        var cats = await _categoryService.GetAllCategoriesAsync();
+        var offset = (CurrentPage - 1) * _pageSize;
+        var paginatedResult = await _categoryService.GetAllCategoriesAsync(_pageSize, offset);
+
+        TotalCount = paginatedResult.TotalCount;
+        TotalPages = (int)Math.Ceiling((double)TotalCount / _pageSize);
+        if (TotalPages == 0) TotalPages = 1;
+
         Categories.Clear();
-        foreach (var c in cats)
+        foreach (var c in paginatedResult.Items)
             Categories.Add(new CategoryRowViewModel(c));
+
+        PreviousPageCommand.NotifyCanExecuteChanged();
+        NextPageCommand.NotifyCanExecuteChanged();
+
         _allCategories = Categories.ToList();
     }
 

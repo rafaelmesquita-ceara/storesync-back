@@ -18,9 +18,9 @@ namespace StoreSyncBack.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] int limit = 50, [FromQuery] int offset = 0)
         {
-            var list = await _service.GetAllSaleItemsAsync();
+            var list = await _service.GetAllSaleItemsAsync(limit, offset);
             return Ok(list);
         }
 
@@ -33,9 +33,9 @@ namespace StoreSyncBack.Controllers
         }
 
         [HttpGet("by-sale/{saleId:guid}")]
-        public async Task<IActionResult> GetBySaleId(Guid saleId)
+        public async Task<IActionResult> GetBySaleId(Guid saleId, [FromQuery] int limit = 50, [FromQuery] int offset = 0)
         {
-            var items = await _service.GetSaleItemsBySaleIdAsync(saleId);
+            var items = await _service.GetSaleItemsBySaleIdAsync(saleId, limit, offset);
             return Ok(items);
         }
 

@@ -1,9 +1,9 @@
-﻿namespace SharedModels.Interfaces;
+namespace SharedModels.Interfaces;
 
 public interface IFinanceRepository
 {
-    Task<IEnumerable<Finance>> GetAllFinanceAsync();
-    Task<IEnumerable<Finance>> GetAllByTypeAsync(int type);
+    Task<PaginatedResult<Finance>> GetAllFinanceAsync(int limit = 50, int offset = 0);
+    Task<PaginatedResult<Finance>> GetAllByTypeAsync(int type, int limit = 50, int offset = 0);
     Task<Finance?> GetFinanceByIdAsync(Guid financeId);
     Task<Finance?> GetResidualByParentIdAsync(Guid parentId);
     Task<int> CreateFinanceAsync(Finance finance);
@@ -15,8 +15,8 @@ public interface IFinanceRepository
 
 public interface IFinanceService
 {
-    Task<IEnumerable<Finance>> GetAllFinanceAsync();
-    Task<IEnumerable<Finance>> GetAllByTypeAsync(int type);
+    Task<PaginatedResult<Finance>> GetAllFinanceAsync(int limit = 50, int offset = 0);
+    Task<PaginatedResult<Finance>> GetAllByTypeAsync(int type, int limit = 50, int offset = 0);
     Task<Finance?> GetFinanceByIdAsync(Guid financeId);
     Task<int> CreateFinanceAsync(Finance finance);
     Task<int> UpdateFinanceAsync(Finance finance);

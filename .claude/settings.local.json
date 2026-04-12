@@ -7,7 +7,9 @@
       "Bash(dotnet sln:*)",
       "Bash(rm UnitTest1.cs)",
       "Bash(mkdir -p Unit/Services Unit/Validators Fixtures Helpers)",
-      "Bash(dotnet test:*)"
+      "Bash(dotnet test:*)",
+      "Bash(xargs grep:*)",
+      "Bash(git add:*)"
     ]
   }
 }

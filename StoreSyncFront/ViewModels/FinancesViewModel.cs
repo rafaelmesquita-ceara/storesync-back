@@ -25,6 +25,29 @@ public partial class FinancesViewModel : ObservableValidator
     private List<FinanceViewModel>? _allFinances;
 
     [ObservableProperty] private string _searchBarField = string.Empty;
+
+    [ObservableProperty] private int _currentPage = 1;
+    [ObservableProperty] private int _totalPages = 1;
+    [ObservableProperty] private int _totalCount = 0;
+    private int _pageSize = 50;
+
+    public bool CanPreviousPage => CurrentPage > 1;
+    public bool CanNextPage => CurrentPage < TotalPages;
+
+    [RelayCommand(CanExecute = nameof(CanPreviousPage))]
+    private async Task PreviousPage()
+    {
+        CurrentPage--;
+        await LoadDataAsync();
+    }
+
+    [RelayCommand(CanExecute = nameof(CanNextPage))]
+    private async Task NextPage()
+    {
+        CurrentPage++;
+        await LoadDataAsync();
+    }
+
     [ObservableProperty] private bool _isEdit;
     [ObservableProperty] private bool _isViewOnly;
     [ObservableProperty] private bool _isActionsExpanded;
@@ -66,10 +89,19 @@ public partial class FinancesViewModel : ObservableValidator
 
     public async Task LoadDataAsync()
     {
-        var items = await _financeService.GetAllByTypeAsync(_financeType);
+        var offset = (CurrentPage - 1) * _pageSize;
+        var paginatedResult = await _financeService.GetAllByTypeAsync(_financeType, _pageSize, offset);
+
+        TotalCount = paginatedResult.TotalCount;
+        TotalPages = (int)Math.Ceiling((double)TotalCount / _pageSize);
+        if (TotalPages == 0) TotalPages = 1;
+
         Finances.Clear();
-        foreach (var item in items)
+        foreach (var item in paginatedResult.Items)
             Finances.Add(new FinanceViewModel(item));
+
+        PreviousPageCommand.NotifyCanExecuteChanged();
+        NextPageCommand.NotifyCanExecuteChanged();
 
         _allFinances = Finances.ToList();
     }
@@ -165,7 +197,7 @@ public partial class FinancesViewModel : ObservableValidator
             Reference   = Reference,
             Description = Description,
             Amount      = amountValue,
-            DueDate     = DueDate?.DateTime ?? DateTime.UtcNow,
+            DueDate     = DueDate?.DateTime ?? BrazilDateTime.Now,
             Type        = _financeType,
             Status      = FinanceStatus.Aberto,
             TitleType   = FinanceTitleType.Original

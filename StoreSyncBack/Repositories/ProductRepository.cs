@@ -14,8 +14,11 @@ namespace StoreSyncBack.Repositories
             _db = db;
         }
 
-        public async Task<IEnumerable<Product>> GetAllProductsAsync()
+        public async Task<PaginatedResult<Product>> GetAllProductsAsync(int limit = 50, int offset = 0)
         {
+            var countSql = "SELECT COUNT(*) FROM product;";
+            var totalCount = await _db.ExecuteScalarAsync<int>(countSql);
+
             var sql = @"
                 SELECT
                     p.product_id AS ProductId,
@@ -25,14 +28,16 @@ namespace StoreSyncBack.Repositories
                     p.price AS Price,
                     p.stock_quantity AS StockQuantity,
                     p.created_at AS CreatedAt,
+                    TRUE AS _splitCategory,
                     c.category_id AS CategoryId,
-                    c.name AS Name
+                    c.name AS Name,
+                    c.created_at AS CreatedAt
                 FROM product p
                 LEFT JOIN category c ON p.category_id = c.category_id
-                ORDER BY p.name;
+                ORDER BY p.name
+                LIMIT @Limit OFFSET @Offset;
             ";
 
-            // multi-mapping: map Product and Category (note splitOn = "CategoryId")
             var result = await _db.QueryAsync<Product, Category, Product>(
                 sql,
                 (product, category) =>
@@ -41,10 +46,17 @@ namespace StoreSyncBack.Repositories
                         product.Category = category;
                     return product;
                 },
-                splitOn: "CategoryId"
+                new { Limit = limit, Offset = offset },
+                splitOn: "_splitCategory"
             );
 
-            return result;
+            return new PaginatedResult<Product>
+            {
+                Items = result,
+                TotalCount = totalCount,
+                Limit = limit,
+                Offset = offset
+            };
         }
 
         public async Task<Product?> GetProductByIdAsync(Guid productId)
@@ -58,8 +70,10 @@ namespace StoreSyncBack.Repositories
                     p.price AS Price,
                     p.stock_quantity AS StockQuantity,
                     p.created_at AS CreatedAt,
+                    TRUE AS _splitCategory,
                     c.category_id AS CategoryId,
-                    c.name AS Name
+                    c.name AS Name,
+                    c.created_at AS CreatedAt
                 FROM product p
                 LEFT JOIN category c ON p.category_id = c.category_id
                 WHERE p.product_id = @Id;
@@ -74,7 +88,7 @@ namespace StoreSyncBack.Repositories
                     return product;
                 },
                 new { Id = productId },
-                splitOn: "CategoryId"
+                splitOn: "_splitCategory"
             );
             return result.FirstOrDefault();
         }
@@ -85,7 +99,7 @@ namespace StoreSyncBack.Repositories
                 product.ProductId = Guid.NewGuid();
 
             if (product.CreatedAt == default)
-                product.CreatedAt = DateTime.UtcNow;
+                product.CreatedAt = BrazilDateTime.Now;
 
             var sql = @"
                 INSERT INTO product (product_id, reference, name, category_id, price, stock_quantity, created_at)

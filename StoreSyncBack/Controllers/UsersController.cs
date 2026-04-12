@@ -28,12 +28,12 @@ namespace StoreSyncBack.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] int limit = 50, [FromQuery] int offset = 0)
         {
-            var users = await _service.GetAllUsersAsync();
+            var usersResult = await _service.GetAllUsersAsync(limit, offset);
             // não retornar senha no payload
-            users.ToList().ForEach(u => u.Password = null);
-            return Ok(users);
+            usersResult.Items.ToList().ForEach(u => u.Password = null);
+            return Ok(usersResult);
         }
 
         [HttpGet("{id:guid}")]

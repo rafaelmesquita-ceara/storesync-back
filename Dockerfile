@@ -17,6 +17,7 @@ RUN dotnet publish StoreSyncBack/StoreSyncBack.csproj -c Release -o /app/publish
 
 # Etapa 2: Runtime
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
+ENV TZ=America/Sao_Paulo
 WORKDIR /app
 
 # Copia os arquivos publicados

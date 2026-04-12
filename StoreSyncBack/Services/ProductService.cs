@@ -12,9 +12,9 @@ namespace StoreSyncBack.Services
             _repo = repo;
         }
 
-        public Task<IEnumerable<Product>> GetAllProductsAsync()
+        public Task<PaginatedResult<Product>> GetAllProductsAsync(int limit = 50, int offset = 0)
         {
-            return _repo.GetAllProductsAsync();
+            return _repo.GetAllProductsAsync(limit, offset);
         }
 
         public Task<Product?> GetProductByIdAsync(Guid productId)
@@ -40,7 +40,7 @@ namespace StoreSyncBack.Services
                 product.ProductId = Guid.NewGuid();
 
             if (product.CreatedAt == default)
-                product.CreatedAt = DateTime.UtcNow;
+                product.CreatedAt = BrazilDateTime.Now;
 
             return await _repo.CreateProductAsync(product);
         }

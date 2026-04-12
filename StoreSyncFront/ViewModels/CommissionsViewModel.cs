@@ -24,6 +24,29 @@ public partial class CommissionsViewModel : ObservableObject
     private List<CommissionViewModel>? _allCommissions;
 
     [ObservableProperty] private string _searchBarField = string.Empty;
+
+    [ObservableProperty] private int _currentPage = 1;
+    [ObservableProperty] private int _totalPages = 1;
+    [ObservableProperty] private int _totalCount = 0;
+    private int _pageSize = 50;
+
+    public bool CanPreviousPage => CurrentPage > 1;
+    public bool CanNextPage => CurrentPage < TotalPages;
+
+    [RelayCommand(CanExecute = nameof(CanPreviousPage))]
+    private async Task PreviousPage()
+    {
+        CurrentPage--;
+        await LoadDataAsync();
+    }
+
+    [RelayCommand(CanExecute = nameof(CanNextPage))]
+    private async Task NextPage()
+    {
+        CurrentPage++;
+        await LoadDataAsync();
+    }
+
     [ObservableProperty] private bool _isEdit;
     [ObservableProperty] private bool _isViewOnly;
     [ObservableProperty] private bool _isPreview;
@@ -59,15 +82,25 @@ public partial class CommissionsViewModel : ObservableObject
 
     public async Task LoadDataAsync()
     {
-        var commissions = await _commissionService.GetAllCommissionsAsync();
+        var offset = (CurrentPage - 1) * _pageSize;
+        var paginatedResult = await _commissionService.GetAllCommissionsAsync(_pageSize, offset);
+
+        TotalCount = paginatedResult.TotalCount;
+        TotalPages = (int)Math.Ceiling((double)TotalCount / _pageSize);
+        if (TotalPages == 0) TotalPages = 1;
+
         Commissions.Clear();
-        foreach (var c in commissions)
+        foreach (var c in paginatedResult.Items)
             Commissions.Add(new CommissionViewModel(c));
+
+        PreviousPageCommand.NotifyCanExecuteChanged();
+        NextPageCommand.NotifyCanExecuteChanged();
+
         _allCommissions = Commissions.ToList();
 
-        var employees = await _employeeService.GetAllEmployeesAsync();
+        var employeesPage = await _employeeService.GetAllEmployeesAsync(1000, 0);
         Employees.Clear();
-        foreach (var e in employees)
+        foreach (var e in employeesPage.Items)
             Employees.Add(e);
     }
 

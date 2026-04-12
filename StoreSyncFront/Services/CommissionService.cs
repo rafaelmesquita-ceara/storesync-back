@@ -12,14 +12,14 @@ namespace StoreSyncFront.Services;
 
 public class CommissionService(IApiService apiService) : ICommissionService
 {
-    public async Task<IEnumerable<Commission>> GetAllCommissionsAsync()
+    public async Task<PaginatedResult<Commission>> GetAllCommissionsAsync(int limit = 50, int offset = 0)
     {
-        Response response = await apiService.GetAsync("/api/Commissions");
+        Response response = await apiService.GetAsync($"/api/Commissions?limit={limit}&offset={offset}");
         if (response.IsSuccess())
-            return JsonConvert.DeserializeObject<IEnumerable<Commission>>(response.Body) ?? new List<Commission>();
+            return JsonConvert.DeserializeObject<PaginatedResult<Commission>>(response.Body) ?? new PaginatedResult<Commission>();
 
         SnackBarService.Send("Erro ao buscar comissões: " + response.Body);
-        return new List<Commission>();
+        return new PaginatedResult<Commission> { Items = new List<Commission>() };
     }
 
     public async Task<Commission?> GetCommissionByIdAsync(Guid commissionId)

@@ -11,24 +11,24 @@ namespace StoreSyncFront.Services;
 
 public class SaleItemService(IApiService apiService) : ISaleItemService
 {
-    public async Task<IEnumerable<SaleItem>> GetAllSaleItemsAsync()
+    public async Task<PaginatedResult<SaleItem>> GetAllSaleItemsAsync(int limit = 50, int offset = 0)
     {
-        Response response = await apiService.GetAsync("/api/SaleItems");
+        Response response = await apiService.GetAsync($"/api/SaleItems?limit={limit}&offset={offset}");
         if (response.IsSuccess())
-            return JsonConvert.DeserializeObject<IEnumerable<SaleItem>>(response.Body) ?? new List<SaleItem>();
+            return JsonConvert.DeserializeObject<PaginatedResult<SaleItem>>(response.Body) ?? new PaginatedResult<SaleItem>();
 
         SnackBarService.Send("Erro ao buscar itens de venda: " + response.Body);
-        return new List<SaleItem>();
+        return new PaginatedResult<SaleItem> { Items = new List<SaleItem>() };
     }
 
-    public async Task<IEnumerable<SaleItem>> GetSaleItemsBySaleIdAsync(Guid saleId)
+    public async Task<PaginatedResult<SaleItem>> GetSaleItemsBySaleIdAsync(Guid saleId, int limit = 50, int offset = 0)
     {
-        Response response = await apiService.GetAsync($"/api/SaleItems/by-sale/{saleId}");
+        Response response = await apiService.GetAsync($"/api/SaleItems/by-sale/{saleId}?limit={limit}&offset={offset}");
         if (response.IsSuccess())
-            return JsonConvert.DeserializeObject<IEnumerable<SaleItem>>(response.Body) ?? new List<SaleItem>();
+            return JsonConvert.DeserializeObject<PaginatedResult<SaleItem>>(response.Body) ?? new PaginatedResult<SaleItem>();
 
         SnackBarService.Send("Erro ao buscar itens da venda: " + response.Body);
-        return new List<SaleItem>();
+        return new PaginatedResult<SaleItem> { Items = new List<SaleItem>() };
     }
 
     public async Task<SaleItem?> GetSaleItemByIdAsync(Guid saleItemId)

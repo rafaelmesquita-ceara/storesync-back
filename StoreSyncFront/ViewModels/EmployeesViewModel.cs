@@ -19,6 +19,28 @@ public partial class EmployeesViewModel : ObservableValidator
     [ObservableProperty]
     private string _searchBarField = string.Empty;
 
+    [ObservableProperty] private int _currentPage = 1;
+    [ObservableProperty] private int _totalPages = 1;
+    [ObservableProperty] private int _totalCount = 0;
+    private int _pageSize = 50;
+
+    public bool CanPreviousPage => CurrentPage > 1;
+    public bool CanNextPage => CurrentPage < TotalPages;
+
+    [RelayCommand(CanExecute = nameof(CanPreviousPage))]
+    private async Task PreviousPage()
+    {
+        CurrentPage--;
+        await LoadDataAsync();
+    }
+
+    [RelayCommand(CanExecute = nameof(CanNextPage))]
+    private async Task NextPage()
+    {
+        CurrentPage++;
+        await LoadDataAsync();
+    }
+
     private readonly IEmployeeService _employeeService;
 
     public ObservableCollection<Employee> Employees { get; } = new();
@@ -57,14 +79,24 @@ public partial class EmployeesViewModel : ObservableValidator
 
     public async Task LoadDataAsync()
     {
-        var employees = await _employeeService.GetAllEmployeesAsync();
+        var offset = (CurrentPage - 1) * _pageSize;
+        var paginatedResult = await _employeeService.GetAllEmployeesAsync(_pageSize, offset);
+
+        TotalCount = paginatedResult.TotalCount;
+        TotalPages = (int)Math.Ceiling((double)TotalCount / _pageSize);
+        if (TotalPages == 0) TotalPages = 1;
+
         Employees.Clear();
-        foreach (var e in employees)
+        foreach (var e in paginatedResult.Items)
         {
             Employees.Add(e);
             if (!string.IsNullOrWhiteSpace(e.Role) && !Roles.Contains(e.Role))
                 Roles.Add(e.Role);
         }
+
+        PreviousPageCommand.NotifyCanExecuteChanged();
+        NextPageCommand.NotifyCanExecuteChanged();
+
         _allEmployees = Employees.ToList();
     }
 

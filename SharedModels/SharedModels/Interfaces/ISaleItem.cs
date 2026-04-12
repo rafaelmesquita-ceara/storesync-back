@@ -1,9 +1,9 @@
-﻿namespace SharedModels.Interfaces;
+namespace SharedModels.Interfaces;
 
 public interface ISaleItemRepository
 {
-    Task<IEnumerable<SaleItem>> GetAllSaleItemsAsync();
-    Task<IEnumerable<SaleItem>> GetSaleItemsBySaleIdAsync(Guid saleId);
+    Task<PaginatedResult<SaleItem>> GetAllSaleItemsAsync(int limit = 50, int offset = 0);
+    Task<PaginatedResult<SaleItem>> GetSaleItemsBySaleIdAsync(Guid saleId, int limit = 50, int offset = 0);
     Task<SaleItem?> GetSaleItemByIdAsync(Guid saleItemId);
     Task<int> CreateSaleItemAsync(SaleItem saleItem);
     Task<int> UpdateSaleItemAsync(SaleItem saleItem);
@@ -12,8 +12,8 @@ public interface ISaleItemRepository
 
 public interface ISaleItemService
 {
-    Task<IEnumerable<SaleItem>> GetAllSaleItemsAsync();
-    Task<IEnumerable<SaleItem>> GetSaleItemsBySaleIdAsync(Guid saleId);
+    Task<PaginatedResult<SaleItem>> GetAllSaleItemsAsync(int limit = 50, int offset = 0);
+    Task<PaginatedResult<SaleItem>> GetSaleItemsBySaleIdAsync(Guid saleId, int limit = 50, int offset = 0);
     Task<SaleItem?> GetSaleItemByIdAsync(Guid saleItemId);
     Task<int> CreateSaleItemAsync(SaleItem saleItem);
     Task<int> UpdateSaleItemAsync(SaleItem saleItem);

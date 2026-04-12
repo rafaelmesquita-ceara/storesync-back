@@ -16,8 +16,8 @@ namespace StoreSyncBack.Services
             _employeeRepo = employeeRepo;
         }
 
-        public Task<IEnumerable<Commission>> GetAllCommissionsAsync()
-            => _repo.GetAllCommissionsAsync();
+        public Task<PaginatedResult<Commission>> GetAllCommissionsAsync(int limit = 50, int offset = 0)
+            => _repo.GetAllCommissionsAsync(limit, offset);
 
         public Task<Commission?> GetCommissionByIdAsync(Guid commissionId)
             => _repo.GetCommissionByIdAsync(commissionId);
@@ -70,7 +70,7 @@ namespace StoreSyncBack.Services
             commission.TotalSales = totalSales;
             commission.CommissionRate = commissionRate;
             commission.CommissionValue = commissionValue;
-            commission.CreatedAt = DateTime.UtcNow;
+            commission.CreatedAt = BrazilDateTime.Now;
 
             return await _repo.CreateCommissionAsync(commission);
         }

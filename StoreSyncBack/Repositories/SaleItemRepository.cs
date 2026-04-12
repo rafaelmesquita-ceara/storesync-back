@@ -14,8 +14,11 @@ namespace StoreSyncBack.Repositories
             _db = db;
         }
 
-        public async Task<IEnumerable<SaleItem>> GetAllSaleItemsAsync()
+        public async Task<PaginatedResult<SaleItem>> GetAllSaleItemsAsync(int limit = 50, int offset = 0)
         {
+            var countSql = "SELECT COUNT(*) FROM sale_item;";
+            var totalCount = await _db.ExecuteScalarAsync<int>(countSql);
+
             var sql = @"
                 SELECT
                     si.sale_item_id AS SaleItemId,
@@ -26,8 +29,8 @@ namespace StoreSyncBack.Repositories
                     si.addition AS Addition,
                     si.total_price AS TotalPrice,
                     si.created_at AS CreatedAt,
-                    p.product_id AS ProductId,
                     p.reference AS Reference,
+                    p.product_id AS ProductId,
                     p.name AS Name,
                     p.category_id AS CategoryId,
                     p.price AS Price,
@@ -35,7 +38,8 @@ namespace StoreSyncBack.Repositories
                     p.created_at AS CreatedAt
                 FROM sale_item si
                 LEFT JOIN product p ON si.product_id = p.product_id
-                ORDER BY si.created_at DESC;
+                ORDER BY si.created_at DESC
+                LIMIT @Limit OFFSET @Offset;
             ";
 
             var result = await _db.QueryAsync<SaleItem, Product, SaleItem>(
@@ -45,14 +49,24 @@ namespace StoreSyncBack.Repositories
                     saleItem.Product = product;
                     return saleItem;
                 },
-                splitOn: "ProductId"
+                new { Limit = limit, Offset = offset },
+                splitOn: "Reference"
             );
 
-            return result;
+            return new PaginatedResult<SaleItem>
+            {
+                Items = result,
+                TotalCount = totalCount,
+                Limit = limit,
+                Offset = offset
+            };
         }
 
-        public async Task<IEnumerable<SaleItem>> GetSaleItemsBySaleIdAsync(Guid saleId)
+        public async Task<PaginatedResult<SaleItem>> GetSaleItemsBySaleIdAsync(Guid saleId, int limit = 50, int offset = 0)
         {
+            var countSql = "SELECT COUNT(*) FROM sale_item WHERE sale_id = @SaleId;";
+            var totalCount = await _db.ExecuteScalarAsync<int>(countSql, new { SaleId = saleId });
+
             var sql = @"
                 SELECT
                     si.sale_item_id AS SaleItemId,
@@ -63,8 +77,8 @@ namespace StoreSyncBack.Repositories
                     si.addition AS Addition,
                     si.total_price AS TotalPrice,
                     si.created_at AS CreatedAt,
-                    p.product_id AS ProductId,
                     p.reference AS Reference,
+                    p.product_id AS ProductId,
                     p.name AS Name,
                     p.category_id AS CategoryId,
                     p.price AS Price,
@@ -73,7 +87,8 @@ namespace StoreSyncBack.Repositories
                 FROM sale_item si
                 LEFT JOIN product p ON si.product_id = p.product_id
                 WHERE si.sale_id = @SaleId
-                ORDER BY si.created_at;
+                ORDER BY si.created_at
+                LIMIT @Limit OFFSET @Offset;
             ";
 
             var result = await _db.QueryAsync<SaleItem, Product, SaleItem>(
@@ -83,11 +98,17 @@ namespace StoreSyncBack.Repositories
                     saleItem.Product = product;
                     return saleItem;
                 },
-                new { SaleId = saleId },
-                splitOn: "ProductId"
+                new { SaleId = saleId, Limit = limit, Offset = offset },
+                splitOn: "Reference"
             );
 
-            return result;
+            return new PaginatedResult<SaleItem>
+            {
+                Items = result,
+                TotalCount = totalCount,
+                Limit = limit,
+                Offset = offset
+            };
         }
 
         public async Task<SaleItem?> GetSaleItemByIdAsync(Guid saleItemId)
@@ -102,8 +123,8 @@ namespace StoreSyncBack.Repositories
                     si.addition AS Addition,
                     si.total_price AS TotalPrice,
                     si.created_at AS CreatedAt,
-                    p.product_id AS ProductId,
                     p.reference AS Reference,
+                    p.product_id AS ProductId,
                     p.name AS Name,
                     p.category_id AS CategoryId,
                     p.price AS Price,
@@ -122,7 +143,7 @@ namespace StoreSyncBack.Repositories
                     return saleItem;
                 },
                 new { Id = saleItemId },
-                splitOn: "ProductId"
+                splitOn: "Reference"
             );
 
             return result.FirstOrDefault();
@@ -134,7 +155,7 @@ namespace StoreSyncBack.Repositories
                 saleItem.SaleItemId = Guid.NewGuid();
 
             if (saleItem.CreatedAt == default)
-                saleItem.CreatedAt = DateTime.UtcNow;
+                saleItem.CreatedAt = BrazilDateTime.Now;
 
             if (saleItem.TotalPrice == 0m)
                 saleItem.TotalPrice = (saleItem.Quantity * (saleItem.Product?.Price ?? 0m))

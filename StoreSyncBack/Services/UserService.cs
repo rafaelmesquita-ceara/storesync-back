@@ -39,7 +39,7 @@ namespace StoreSyncBack.Services
             _changePasswordValidator = changePasswordValidator;
         }
 
-        public Task<IEnumerable<User>> GetAllUsersAsync() => _repo.GetAllUsersAsync();
+        public Task<PaginatedResult<User>> GetAllUsersAsync(int limit = 50, int offset = 0) => _repo.GetAllUsersAsync(limit, offset);
 
         public Task<User?> GetUserByIdAsync(Guid userId) => _repo.GetUserByIdAsync(userId);
 

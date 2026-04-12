@@ -26,15 +26,16 @@ namespace StoreSyncBack.Tests.Unit.Services
         {
             // Arrange
             var expectedEmployees = TestData.CreateEmployees(5);
-            _employeeRepoMock.Setup(r => r.GetAllEmployeesAsync())
-                .ReturnsAsync(expectedEmployees);
+            var paginated = new PaginatedResult<Employee> { Items = expectedEmployees, TotalCount = 5 };
+            _employeeRepoMock.Setup(r => r.GetAllEmployeesAsync(It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync(paginated);
 
             // Act
             var result = await _employeeService.GetAllEmployeesAsync();
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().HaveCount(5);
+            result.Items.Should().HaveCount(5);
         }
 
         #endregion

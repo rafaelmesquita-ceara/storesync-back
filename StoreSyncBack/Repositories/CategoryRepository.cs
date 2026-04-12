@@ -14,12 +14,25 @@ namespace StoreSyncBack.Repositories
             _db = db;
         }
 
-        public async Task<IEnumerable<Category>> GetAllCategoriesAsync()
+        public async Task<PaginatedResult<Category>> GetAllCategoriesAsync(int limit = 50, int offset = 0)
         {
+            var countSql = "SELECT COUNT(*) FROM category;";
+            var totalCount = await _db.ExecuteScalarAsync<int>(countSql);
+
             var sql = @"SELECT category_id AS CategoryId, name AS Name, created_at AS CreatedAt
                         FROM category
-                        ORDER BY name;";
-            return await _db.QueryAsync<Category>(sql);
+                        ORDER BY name
+                        LIMIT @Limit OFFSET @Offset;";
+            
+            var result = await _db.QueryAsync<Category>(sql, new { Limit = limit, Offset = offset });
+
+            return new PaginatedResult<Category>
+            {
+                Items = result,
+                TotalCount = totalCount,
+                Limit = limit,
+                Offset = offset
+            };
         }
 
         public async Task<Category?> GetCategoryByIdAsync(Guid categoryId)
@@ -36,7 +49,7 @@ namespace StoreSyncBack.Repositories
                 category.CategoryId = Guid.NewGuid();
 
             if (category.CreatedAt == default)
-                category.CreatedAt = DateTime.UtcNow;
+                category.CreatedAt = BrazilDateTime.Now;
 
             var sql = @"
                 INSERT INTO category (category_id, name, created_at)

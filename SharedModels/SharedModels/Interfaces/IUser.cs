@@ -1,8 +1,8 @@
-﻿namespace SharedModels.Interfaces;
+namespace SharedModels.Interfaces;
 
 public interface IUserRepository
 {
-    Task<IEnumerable<User>> GetAllUsersAsync();
+    Task<PaginatedResult<User>> GetAllUsersAsync(int limit = 50, int offset = 0);
     Task<User?> GetUserByIdAsync(Guid userId);
     Task<User?> Login(UserLoginDto userLoginDto);
     Task<int> CreateUserAsync(User user);
@@ -12,7 +12,7 @@ public interface IUserRepository
 
 public interface IUserService
 {
-    Task<IEnumerable<User>> GetAllUsersAsync();
+    Task<PaginatedResult<User>> GetAllUsersAsync(int limit = 50, int offset = 0);
     Task<User?> GetUserByIdAsync(Guid userId);
     Task<User?> Login(UserLoginDto userLoginDto);
     Task<int> CreateUserAsync(User user);

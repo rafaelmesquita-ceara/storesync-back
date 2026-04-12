@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -17,12 +17,16 @@ public interface IApiService
     Task<Response> PutAsync(string? url, JsonContent content);
     Task<Response> PatchAsync(string? url);
     Task<Response> DeleteAsync(string? url);
+    Task<byte[]?> DownloadAsync(string? url);
+    event Action OnUnauthorized;
 }
 
 public class ApiService(HttpClient httpClient) : IApiService
 {
     private string _apiKey;
     
+    public event Action OnUnauthorized;
+
     public void SetApiKey(string apiKey)
     {
         _apiKey = apiKey;
@@ -36,6 +40,15 @@ public class ApiService(HttpClient httpClient) : IApiService
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _apiKey);
         }
     }
+
+    private void CheckAuthorization(HttpResponseMessage response)
+    {
+        if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized || 
+            response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+        {
+            OnUnauthorized?.Invoke();
+        }
+    }
     
     public async Task<Response> GetAsync(string? url)
     {
@@ -43,6 +56,7 @@ public class ApiService(HttpClient httpClient) : IApiService
         AddAuthHeader(request);
         
         using HttpResponseMessage response = await httpClient.SendAsync(request);
+        CheckAuthorization(response);
         var jsonResponse = await response.Content.ReadAsStringAsync();
         return new Response((int)response.StatusCode, jsonResponse);
     }
@@ -54,6 +68,7 @@ public class ApiService(HttpClient httpClient) : IApiService
         request.Content = content;
         
         using HttpResponseMessage response = await httpClient.SendAsync(request);
+        CheckAuthorization(response);
         var jsonResponse = await response.Content.ReadAsStringAsync();
         return new Response((int)response.StatusCode, jsonResponse);
     }
@@ -65,6 +80,7 @@ public class ApiService(HttpClient httpClient) : IApiService
         request.Content = content;
         
         using HttpResponseMessage response = await httpClient.SendAsync(request);
+        CheckAuthorization(response);
         var jsonResponse = await response.Content.ReadAsStringAsync();
         return new Response((int)response.StatusCode, jsonResponse);
     }
@@ -80,7 +96,22 @@ public class ApiService(HttpClient httpClient) : IApiService
         AddAuthHeader(request);
         
         using HttpResponseMessage response = await httpClient.SendAsync(request);
+        CheckAuthorization(response);
         var jsonResponse = await response.Content.ReadAsStringAsync();
         return new Response((int)response.StatusCode, jsonResponse);
+    }
+
+    public async Task<byte[]?> DownloadAsync(string? url)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+        AddAuthHeader(request);
+        
+        using HttpResponseMessage response = await httpClient.SendAsync(request);
+        CheckAuthorization(response);
+        if (response.IsSuccessStatusCode)
+        {
+            return await response.Content.ReadAsByteArrayAsync();
+        }
+        return null;
     }
 }

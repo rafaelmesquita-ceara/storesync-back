@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http.Json;
@@ -23,14 +23,14 @@ public class AuthService : IAuthService
         _apiService = apiService;
     }
 
-    public async Task<IEnumerable<User>> GetAllUsersAsync()
+    public async Task<PaginatedResult<User>> GetAllUsersAsync(int limit = 50, int offset = 0)
     {
-        Response response = await _apiService.GetAsync("/api/Users");
+        Response response = await _apiService.GetAsync($"/api/Users?limit={limit}&offset={offset}");
         if (response.IsSuccess())
-            return JsonConvert.DeserializeObject<List<User>>(response.Body) ?? [];
+            return JsonConvert.DeserializeObject<PaginatedResult<User>>(response.Body) ?? new PaginatedResult<User>();
 
         SnackBarService.Send("Erro ao buscar usuários: " + response.Body);
-        return [];
+        return new PaginatedResult<User> { Items = new List<User>() };
     }
 
     public async Task<User?> GetUserByIdAsync(Guid userId)
@@ -144,9 +144,24 @@ public class AuthService : IAuthService
 
             if (user != null && !string.IsNullOrEmpty(user.Token))
             {
-                _loggedUser = user;
                 _apiService.SetApiKey(user.Token);
-                return true;
+                
+                // Verify if token is still valid
+                var response = await _apiService.GetAsync($"/api/Users/{user.UserId}");
+                
+                if (response.IsSuccess())
+                {
+                    _loggedUser = user;
+                    return true;
+                }
+                
+                if (response.Status == 401 || response.Status == 403)
+                {
+                    Console.WriteLine("[AuthService] Token expirado ou inválido. Limpando credenciais locais.");
+                    Logout();
+                }
+
+                return false;
             }
 
             return false;

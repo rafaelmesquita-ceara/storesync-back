@@ -29,23 +29,47 @@ namespace StoreSyncBack.Repositories
             _db = db;
         }
 
-        public async Task<IEnumerable<Finance>> GetAllFinanceAsync()
+        public async Task<PaginatedResult<Finance>> GetAllFinanceAsync(int limit = 50, int offset = 0)
         {
+            var countSql = "SELECT COUNT(*) FROM finance;";
+            var totalCount = await _db.ExecuteScalarAsync<int>(countSql);
+
             var sql = $@"
                 SELECT {SelectColumns}
                 FROM finance
-                ORDER BY due_date DESC;";
-            return await _db.QueryAsync<Finance>(sql);
+                ORDER BY due_date DESC
+                LIMIT @Limit OFFSET @Offset;";
+            var result = await _db.QueryAsync<Finance>(sql, new { Limit = limit, Offset = offset });
+
+            return new PaginatedResult<Finance>
+            {
+                Items = result,
+                TotalCount = totalCount,
+                Limit = limit,
+                Offset = offset
+            };
         }
 
-        public async Task<IEnumerable<Finance>> GetAllByTypeAsync(int type)
+        public async Task<PaginatedResult<Finance>> GetAllByTypeAsync(int type, int limit = 50, int offset = 0)
         {
+            var countSql = "SELECT COUNT(*) FROM finance WHERE type = @Type;";
+            var totalCount = await _db.ExecuteScalarAsync<int>(countSql, new { Type = type });
+
             var sql = $@"
                 SELECT {SelectColumns}
                 FROM finance
                 WHERE type = @Type
-                ORDER BY due_date DESC;";
-            return await _db.QueryAsync<Finance>(sql, new { Type = type });
+                ORDER BY due_date DESC
+                LIMIT @Limit OFFSET @Offset;";
+            var result = await _db.QueryAsync<Finance>(sql, new { Type = type, Limit = limit, Offset = offset });
+
+            return new PaginatedResult<Finance>
+            {
+                Items = result,
+                TotalCount = totalCount,
+                Limit = limit,
+                Offset = offset
+            };
         }
 
         public async Task<Finance?> GetFinanceByIdAsync(Guid financeId)
@@ -74,7 +98,7 @@ namespace StoreSyncBack.Repositories
                 finance.FinanceId = Guid.NewGuid();
 
             if (finance.CreatedAt == default)
-                finance.CreatedAt = DateTime.UtcNow;
+                finance.CreatedAt = BrazilDateTime.Now;
 
             var sql = @"
                 INSERT INTO finance (

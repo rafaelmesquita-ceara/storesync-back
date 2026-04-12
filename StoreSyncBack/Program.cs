@@ -110,6 +110,7 @@ services.AddScoped<ISaleItemService, StoreSyncBack.Services.SaleItemService>();
 
 services.AddScoped<ISaleRepository, StoreSyncBack.Repositories.SaleRepository>();
 services.AddScoped<ISaleService, StoreSyncBack.Services.SaleService>();
+services.AddScoped<StoreSyncBack.Services.SalesPdfReportService>();
 
 services.AddScoped<IUserRepository, StoreSyncBack.Repositories.UserRepository>();
 services.AddScoped<IUserService, StoreSyncBack.Services.UserService>();

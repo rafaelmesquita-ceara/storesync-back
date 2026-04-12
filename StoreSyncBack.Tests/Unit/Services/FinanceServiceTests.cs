@@ -313,16 +313,17 @@ namespace StoreSyncBack.Tests.Unit.Services
             // Arrange
             var finances = TestData.CreateFinances(3);
             foreach (var f in finances) f.Type = FinanceType.Pagar;
+            var paginated = new PaginatedResult<Finance> { Items = finances, TotalCount = 3 };
 
-            _repoMock.Setup(r => r.GetAllByTypeAsync(FinanceType.Pagar)).ReturnsAsync(finances);
+            _repoMock.Setup(r => r.GetAllByTypeAsync(FinanceType.Pagar, It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(paginated);
 
             // Act
             var result = await _service.GetAllByTypeAsync(FinanceType.Pagar);
 
             // Assert
-            result.Should().HaveCount(3);
-            result.Should().OnlyContain(f => f.Type == FinanceType.Pagar);
-            _repoMock.Verify(r => r.GetAllByTypeAsync(FinanceType.Pagar), Times.Once);
+            result.Items.Should().HaveCount(3);
+            result.Items.Should().OnlyContain(f => f.Type == FinanceType.Pagar);
+            _repoMock.Verify(r => r.GetAllByTypeAsync(FinanceType.Pagar, It.IsAny<int>(), It.IsAny<int>()), Times.Once);
         }
 
         #endregion

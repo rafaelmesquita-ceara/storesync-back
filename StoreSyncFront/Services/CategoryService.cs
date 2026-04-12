@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
@@ -11,14 +11,14 @@ namespace StoreSyncFront.Services;
 
 public class CategoryService(IApiService apiService) : ICategoryService
 {
-    public async Task<IEnumerable<Category>> GetAllCategoriesAsync()
+    public async Task<PaginatedResult<Category>> GetAllCategoriesAsync(int limit = 50, int offset = 0)
     {
-        Response response = await apiService.GetAsync("/api/Categories");
+        Response response = await apiService.GetAsync($"/api/Categories?limit={limit}&offset={offset}");
         if (response.IsSuccess())
-            return JsonConvert.DeserializeObject<IEnumerable<Category>>(response.Body);
+            return JsonConvert.DeserializeObject<PaginatedResult<Category>>(response.Body) ?? new PaginatedResult<Category>();
 
         SnackBarService.Send("Erro ao buscar categorias:" + response.Body);
-        return new List<Category>();
+        return new PaginatedResult<Category> { Items = new List<Category>() };
     }
 
     public async Task<Category?> GetCategoryByIdAsync(Guid categoryId)

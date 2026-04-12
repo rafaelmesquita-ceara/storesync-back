@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
@@ -11,14 +11,14 @@ namespace StoreSyncFront.Services;
 
 public class ProductService(IApiService apiService) : IProductService
 {
-    public async Task<IEnumerable<Product>> GetAllProductsAsync()
+    public async Task<PaginatedResult<Product>> GetAllProductsAsync(int limit = 50, int offset = 0)
     {
-        Response response = await apiService.GetAsync("/api/Products");
+        Response response = await apiService.GetAsync($"/api/Products?limit={limit}&offset={offset}");
         if (response.IsSuccess())
-            return JsonConvert.DeserializeObject<IEnumerable<Product>>(response.Body);
+            return JsonConvert.DeserializeObject<PaginatedResult<Product>>(response.Body) ?? new PaginatedResult<Product>();
 
         SnackBarService.Send("Erro ao buscar produtos:" + response.Body);
-        return new List<Product>();
+        return new PaginatedResult<Product> { Items = new List<Product>() };
     }
 
     public async Task<Product?> GetProductByIdAsync(Guid productId)

@@ -14,12 +14,24 @@ namespace StoreSyncBack.Repositories
             _db = db;
         }
 
-        public async Task<IEnumerable<User>> GetAllUsersAsync()
+        public async Task<PaginatedResult<User>> GetAllUsersAsync(int limit = 50, int offset = 0)
         {
+            var countSql = @"SELECT COUNT(*) FROM ""user"";";
+            var totalCount = await _db.ExecuteScalarAsync<int>(countSql);
+
             var sql = @"SELECT user_id AS UserId, login AS Login, password AS Password, employee_id AS EmployeeId
                         FROM ""user"" -- se você usou nome reservado, ajuste
-                        ORDER BY login;";
-            return await _db.QueryAsync<User>(sql);
+                        ORDER BY login
+                        LIMIT @Limit OFFSET @Offset;";
+            var result = await _db.QueryAsync<User>(sql, new { Limit = limit, Offset = offset });
+
+            return new PaginatedResult<User>
+            {
+                Items = result,
+                TotalCount = totalCount,
+                Limit = limit,
+                Offset = offset
+            };
         }
 
         public async Task<User?> GetUserByIdAsync(Guid userId)

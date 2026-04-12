@@ -24,7 +24,7 @@ Antes de implementar ou alterar qualquer módulo, leia o doc correspondente:
 - Modelos/interfaces/validators: `SharedModels/`
 - Migrations SQL: `StoreSyncBack/Migrations/`
 
-Todas as PKs são `Guid`. Datas em UTC. Senhas com BCrypt.
+Todas as PKs são `Guid`. Datas em horário de Brasília (`BrazilDateTime.Now` — `America/Sao_Paulo`). Senhas com BCrypt.
 
 ## Comandos
 

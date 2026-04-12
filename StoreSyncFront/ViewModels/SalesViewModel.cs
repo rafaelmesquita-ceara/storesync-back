@@ -30,6 +30,29 @@ public partial class SalesViewModel : ObservableValidator
     private List<SaleViewModel>? _allSales;
 
     [ObservableProperty] private string _searchBarField = string.Empty;
+
+    [ObservableProperty] private int _currentPage = 1;
+    [ObservableProperty] private int _totalPages = 1;
+    [ObservableProperty] private int _totalCount = 0;
+    private int _pageSize = 50;
+
+    public bool CanPreviousPage => CurrentPage > 1;
+    public bool CanNextPage => CurrentPage < TotalPages;
+
+    [RelayCommand(CanExecute = nameof(CanPreviousPage))]
+    private async Task PreviousPage()
+    {
+        CurrentPage--;
+        await LoadDataAsync();
+    }
+
+    [RelayCommand(CanExecute = nameof(CanNextPage))]
+    private async Task NextPage()
+    {
+        CurrentPage++;
+        await LoadDataAsync();
+    }
+
     [ObservableProperty] private bool _isEdit;
     [ObservableProperty] private bool _isViewOnly;
     [ObservableProperty] private bool _isActionsExpanded;
@@ -41,6 +64,16 @@ public partial class SalesViewModel : ObservableValidator
     [ObservableProperty] private decimal _totalAmount;
     [ObservableProperty] private int _selectedStatus;
     [ObservableProperty] private SaleItemViewModel? _selectedSaleItem;
+
+    [ObservableProperty] private DateTimeOffset _reportStartDate = DateTimeOffset.Now.AddDays(-7);
+    [ObservableProperty] private DateTimeOffset _reportEndDate = DateTimeOffset.Now;
+
+    public ISaleService SaleService => _saleService;
+
+    public Task<byte[]?> DownloadReportAsync()
+    {
+        return _saleService.DownloadSalesReportAsync(ReportStartDate.Date, ReportEndDate.Date);
+    }
 
     public IRelayCommand ToggleEditCommand { get; }
 
@@ -67,15 +100,25 @@ public partial class SalesViewModel : ObservableValidator
 
     public async Task LoadDataAsync()
     {
-        var items = await _saleService.GetAllSalesAsync();
+        var offset = (CurrentPage - 1) * _pageSize;
+        var paginatedResult = await _saleService.GetAllSalesAsync(_pageSize, offset);
+
+        TotalCount = paginatedResult.TotalCount;
+        TotalPages = (int)Math.Ceiling((double)TotalCount / _pageSize);
+        if (TotalPages == 0) TotalPages = 1;
+
         Sales.Clear();
-        foreach (var item in items)
+        foreach (var item in paginatedResult.Items)
             Sales.Add(new SaleViewModel(item));
+
+        PreviousPageCommand.NotifyCanExecuteChanged();
+        NextPageCommand.NotifyCanExecuteChanged();
+
         _allSales = Sales.ToList();
 
-        var employees = await _employeeService.GetAllEmployeesAsync();
+        var employeesPage = await _employeeService.GetAllEmployeesAsync(1000, 0);
         Employees.Clear();
-        foreach (var e in employees)
+        foreach (var e in employeesPage.Items)
             Employees.Add(e);
     }
 
@@ -142,9 +185,9 @@ public partial class SalesViewModel : ObservableValidator
         TotalAmount = vm.TotalAmount;
         SelectedStatus = vm.Status;
 
-        var items = await _saleItemService.GetSaleItemsBySaleIdAsync(vm.SaleId);
+        var result = await _saleItemService.GetSaleItemsBySaleIdAsync(vm.SaleId, 1000, 0);
         SaleItems.Clear();
-        foreach (var item in items)
+        foreach (var item in result.Items)
             SaleItems.Add(new SaleItemViewModel(item));
 
         IsViewOnly = viewOnly;
@@ -153,8 +196,13 @@ public partial class SalesViewModel : ObservableValidator
     }
 
     [RelayCommand]
-    public void ClearForm()
+    public async Task ClearForm()
     {
+        if (IsEdit && !IsViewOnly && SaleId != Guid.Empty)
+        {
+            await Save();
+        }
+
         ClearErrors();
         IsEdit = false;
         IsViewOnly = false;
@@ -200,6 +248,8 @@ public partial class SalesViewModel : ObservableValidator
     {
         if (SaleId == Guid.Empty) return null;
 
+        await Save();
+
         var saleItem = new SaleItem
         {
             SaleId = SaleId,
@@ -213,9 +263,9 @@ public partial class SalesViewModel : ObservableValidator
         var result = await _saleItemService.CreateSaleItemAsync(saleItem);
         if (result != 0) return null;
 
-        var items = await _saleItemService.GetSaleItemsBySaleIdAsync(SaleId);
+        var paginatedItems1 = await _saleItemService.GetSaleItemsBySaleIdAsync(SaleId, 1000, 0);
         SaleItems.Clear();
-        foreach (var item in items)
+        foreach (var item in paginatedItems1.Items)
             SaleItems.Add(new SaleItemViewModel(item));
 
         var refreshed = await _saleService.GetSaleByIdAsync(SaleId);
@@ -230,12 +280,14 @@ public partial class SalesViewModel : ObservableValidator
     {
         if (SelectedSaleItem == null || SaleId == Guid.Empty) return;
 
+        await Save();
+
         var result = await _saleItemService.DeleteSaleItemAsync(SelectedSaleItem.SaleItemId);
         if (result != 0) return;
 
-        var items = await _saleItemService.GetSaleItemsBySaleIdAsync(SaleId);
+        var paginatedItems2 = await _saleItemService.GetSaleItemsBySaleIdAsync(SaleId, 1000, 0);
         SaleItems.Clear();
-        foreach (var item in items)
+        foreach (var item in paginatedItems2.Items)
             SaleItems.Add(new SaleItemViewModel(item));
 
         var refreshed = await _saleService.GetSaleByIdAsync(SaleId);
@@ -249,10 +301,13 @@ public partial class SalesViewModel : ObservableValidator
     {
         if (SaleId == Guid.Empty) return;
 
+        await Save();
+
         var result = await _saleService.FinalizeSaleAsync(SaleId);
         if (result == 0)
         {
-            ClearForm();
+            IsViewOnly = true;
+            await ClearForm();
             await LoadDataAsync();
         }
     }
@@ -261,10 +316,13 @@ public partial class SalesViewModel : ObservableValidator
     {
         if (SaleId == Guid.Empty) return;
 
+        await Save();
+
         var result = await _saleService.CancelSaleAsync(SaleId);
         if (result == 0)
         {
-            ClearForm();
+            IsViewOnly = true;
+            await ClearForm();
             await LoadDataAsync();
         }
     }
@@ -319,7 +377,8 @@ public partial class SalesViewModel : ObservableValidator
 
     public async Task<IEnumerable<Product>> GetProductsAsync()
     {
-        return await _productService.GetAllProductsAsync();
+        var result = await _productService.GetAllProductsAsync(1000, 0);
+        return result.Items;
     }
 
     public bool CanFinalize => SelectedStatus == SaleStatus.Aberta && SaleItems.Count > 0;

@@ -14,8 +14,11 @@ namespace StoreSyncBack.Repositories
             _db = db;
         }
 
-        public async Task<IEnumerable<Sale>> GetAllSalesAsync()
+        public async Task<PaginatedResult<Sale>> GetAllSalesAsync(int limit = 50, int offset = 0)
         {
+            var countSql = "SELECT COUNT(*) FROM sale;";
+            var totalCount = await _db.ExecuteScalarAsync<int>(countSql);
+
             var sql = @"
                 SELECT
                     s.sale_id AS SaleId,
@@ -27,15 +30,16 @@ namespace StoreSyncBack.Repositories
                     s.status AS Status,
                     s.sale_date AS SaleDate,
                     s.created_at AS CreatedAt,
-                    e.employee_id AS EmployeeId,
                     e.name AS Name,
+                    e.employee_id AS EmployeeId,
                     e.cpf AS Cpf,
                     e.role AS Role,
                     e.commission_rate AS CommissionRate,
                     e.created_at AS CreatedAt
                 FROM sale s
                 JOIN employee e ON s.employee_id = e.employee_id
-                ORDER BY s.sale_date DESC;
+                ORDER BY s.sale_date DESC
+                LIMIT @Limit OFFSET @Offset;
             ";
 
             var sales = await _db.QueryAsync<Sale, Employee, Sale>(
@@ -45,10 +49,17 @@ namespace StoreSyncBack.Repositories
                     sale.Employee = employee;
                     return sale;
                 },
-                splitOn: "EmployeeId"
+                new { Limit = limit, Offset = offset },
+                splitOn: "Name"
             );
 
-            return sales;
+            return new PaginatedResult<Sale>
+            {
+                Items = sales,
+                TotalCount = totalCount,
+                Limit = limit,
+                Offset = offset
+            };
         }
 
         public async Task<Sale?> GetSaleByIdAsync(Guid saleId)
@@ -64,8 +75,8 @@ namespace StoreSyncBack.Repositories
                     s.status AS Status,
                     s.sale_date AS SaleDate,
                     s.created_at AS CreatedAt,
-                    e.employee_id AS EmployeeId,
                     e.name AS Name,
+                    e.employee_id AS EmployeeId,
                     e.cpf AS Cpf,
                     e.role AS Role,
                     e.commission_rate AS CommissionRate,
@@ -83,7 +94,7 @@ namespace StoreSyncBack.Repositories
                     return sale;
                 },
                 new { Id = saleId },
-                splitOn: "EmployeeId"
+                splitOn: "Name"
             );
 
             var sale = result.FirstOrDefault();
@@ -100,11 +111,13 @@ namespace StoreSyncBack.Repositories
                     si.addition AS Addition,
                     si.total_price AS TotalPrice,
                     si.created_at AS CreatedAt,
-                    p.product_id AS ProductId,
                     p.reference AS Reference,
+                    p.product_id AS ProductId,
                     p.name AS Name,
+                    p.category_id AS CategoryId,
                     p.price AS Price,
-                    p.stock_quantity AS StockQuantity
+                    p.stock_quantity AS StockQuantity,
+                    p.created_at AS CreatedAt
                 FROM sale_item si
                 JOIN product p ON si.product_id = p.product_id
                 WHERE si.sale_id = @Id;
@@ -118,7 +131,7 @@ namespace StoreSyncBack.Repositories
                     return item;
                 },
                 new { Id = saleId },
-                splitOn: "ProductId"
+                splitOn: "Reference"
             );
 
             sale.Items = items.ToList();
@@ -130,11 +143,10 @@ namespace StoreSyncBack.Repositories
             if (sale.SaleId == Guid.Empty)
                 sale.SaleId = Guid.NewGuid();
 
-            if (sale.CreatedAt == default)
-                sale.CreatedAt = DateTime.UtcNow;
+            sale.CreatedAt = BrazilDateTime.Now;
 
             if (sale.SaleDate == default)
-                sale.SaleDate = DateTime.UtcNow;
+                sale.SaleDate = BrazilDateTime.Now;
 
             sale.Status = SaleStatus.Aberta;
 
@@ -291,6 +303,39 @@ namespace StoreSyncBack.Repositories
                 EndDate = endDate.Date,
                 StatusCancelada = SaleStatus.Cancelada
             });
+        }
+
+        public async Task<IEnumerable<Sale>> GetSalesByPeriodAsync(DateTime startDate, DateTime endDate)
+        {
+            var sql = @"
+                SELECT 
+                    s.sale_id AS SaleId,
+                    s.referencia AS Referencia,
+                    s.discount AS Discount,
+                    s.addition AS Addition,
+                    s.total_amount AS TotalAmount,
+                    s.status AS Status,
+                    s.sale_date AS SaleDate,
+                    e.employee_id AS EmployeeId,
+                    e.name AS Name
+                FROM sale s
+                LEFT JOIN employee e ON e.employee_id = s.employee_id
+                WHERE s.sale_date::date >= @StartDate AND s.sale_date::date <= @EndDate
+                  AND s.status = @Status
+                ORDER BY s.sale_date ASC;
+            ";
+
+            var result = await _db.QueryAsync<Sale, Employee, Sale>(
+                sql,
+                (sale, employee) =>
+                {
+                    sale.Employee = employee;
+                    return sale;
+                },
+                new { StartDate = startDate.Date, EndDate = endDate.Date, Status = SaleStatus.Finalizada },
+                splitOn: "EmployeeId"
+            );
+            return result;
         }
     }
 }

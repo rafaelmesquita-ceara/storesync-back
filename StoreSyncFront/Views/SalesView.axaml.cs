@@ -98,6 +98,32 @@ public partial class SalesView : UserControl
         vm.IsActionsExpanded = false;
     }
 
+    private async void NovaVendaButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not SalesViewModel vm) return;
+
+        var parentWindow = TopLevel.GetTopLevel(this) as Window;
+        if (parentWindow == null) return;
+
+        // Verifica se há caixa aberto
+        var caixa = await vm.GetCaixaAbertoAsync();
+        if (caixa == null)
+        {
+            var confirm = new ConfirmDialog("Não há caixa aberto. Deseja abrir um novo caixa?");
+            var confirmar = await confirm.ShowDialog<bool>(parentWindow);
+            if (!confirmar) return;
+
+            var abrirDialog = new AbrirCaixaDialog();
+            var valorAbertura = await abrirDialog.ShowDialog<decimal?>(parentWindow);
+            if (valorAbertura == null) return;
+
+            caixa = await vm.AbrirCaixaAsync(valorAbertura.Value);
+            if (caixa == null) return;
+        }
+
+        await vm.CriarNovaVendaInternaAsync();
+    }
+
     private async void ExportReportButton_Click(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not SalesViewModel vm) return;

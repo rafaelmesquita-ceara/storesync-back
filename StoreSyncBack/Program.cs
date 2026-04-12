@@ -125,6 +125,10 @@ services.AddScoped<IPaymentMethodService, StoreSyncBack.Services.PaymentMethodSe
 services.AddScoped<ISalePaymentRepository, StoreSyncBack.Repositories.SalePaymentRepository>();
 services.AddScoped<ISalePaymentService, StoreSyncBack.Services.SalePaymentService>();
 
+services.AddScoped<ICaixaRepository, StoreSyncBack.Repositories.CaixaRepository>();
+services.AddScoped<ICaixaService, StoreSyncBack.Services.CaixaService>();
+services.AddScoped<StoreSyncBack.Services.CaixaPdfReportService>();
+
 services.AddScoped<IUserRepository, StoreSyncBack.Repositories.UserRepository>();
 services.AddScoped<IUserService, StoreSyncBack.Services.UserService>();
 

@@ -30,6 +30,7 @@ public partial class MainViewModel : ObservableObject
     private readonly IClientService _clientService;
     private readonly IPaymentMethodService _paymentMethodService;
     private readonly ISalePaymentService _salePaymentService;
+    private readonly StoreSyncFront.Services.CaixaService _caixaService;
 
     [ObservableProperty]
     private string _username = string.Empty;
@@ -40,7 +41,7 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private TabItemViewModel? _selectedTab;
     
-    public MainViewModel(INavigationService navigationService, IAuthService authService, IProductService productService, ICategoryService categoryService, IEmployeeService employeeService, IFinanceService financeService, ISaleService saleService, ISaleItemService saleItemService, ICommissionService commissionService, IClientService clientService, IPaymentMethodService paymentMethodService, ISalePaymentService salePaymentService)
+    public MainViewModel(INavigationService navigationService, IAuthService authService, IProductService productService, ICategoryService categoryService, IEmployeeService employeeService, IFinanceService financeService, ISaleService saleService, ISaleItemService saleItemService, ICommissionService commissionService, IClientService clientService, IPaymentMethodService paymentMethodService, ISalePaymentService salePaymentService, StoreSyncFront.Services.CaixaService caixaService)
     {
         this._navigationService = navigationService;
         this._authService = authService;
@@ -54,6 +55,7 @@ public partial class MainViewModel : ObservableObject
         this._clientService = clientService;
         this._paymentMethodService = paymentMethodService;
         this._salePaymentService = salePaymentService;
+        this._caixaService = caixaService;
         
 
         var loggedUser = _authService.GetLoggedUser();
@@ -194,7 +196,7 @@ public partial class MainViewModel : ObservableObject
             return;
         }
 
-        var salesVm = new SalesViewModel(_saleService, _saleItemService, _productService, _employeeService, _authService, _clientService, _salePaymentService, _paymentMethodService);
+        var salesVm = new SalesViewModel(_saleService, _saleItemService, _productService, _employeeService, _authService, _clientService, _salePaymentService, _paymentMethodService, _caixaService);
         await salesVm.LoadDataAsync();
         var tab = new TabItemViewModel("Vendas", salesVm, true, CloseTab);
         Tabs.Add(tab);
@@ -231,6 +233,23 @@ public partial class MainViewModel : ObservableObject
         var clientsVm = new ClientsViewModel(_clientService);
         await clientsVm.LoadDataAsync();
         var tab = new TabItemViewModel("Clientes", clientsVm, true, CloseTab);
+        Tabs.Add(tab);
+        SelectedTab = tab;
+    }
+
+    [RelayCommand]
+    private async Task OpenCaixasTab()
+    {
+        var existingTab = Tabs.FirstOrDefault(t => t.Content is CaixasViewModel);
+        if (existingTab != null)
+        {
+            SelectedTab = existingTab;
+            return;
+        }
+
+        var vm = new CaixasViewModel(_caixaService);
+        await vm.LoadDataAsync();
+        var tab = new TabItemViewModel("Caixas", vm, true, CloseTab);
         Tabs.Add(tab);
         SelectedTab = tab;
     }

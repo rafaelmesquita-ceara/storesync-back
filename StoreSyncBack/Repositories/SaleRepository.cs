@@ -25,6 +25,7 @@ namespace StoreSyncBack.Repositories
                     s.referencia AS Referencia,
                     s.employee_id AS EmployeeId,
                     s.client_id AS ClientId,
+                    s.caixa_id AS CaixaId,
                     s.discount AS Discount,
                     s.addition AS Addition,
                     s.total_amount AS TotalAmount,
@@ -72,6 +73,7 @@ namespace StoreSyncBack.Repositories
                     s.referencia AS Referencia,
                     s.employee_id AS EmployeeId,
                     s.client_id AS ClientId,
+                    s.caixa_id AS CaixaId,
                     s.discount AS Discount,
                     s.addition AS Addition,
                     s.total_amount AS TotalAmount,
@@ -190,8 +192,8 @@ namespace StoreSyncBack.Repositories
             sale.Status = SaleStatus.Aberta;
 
             const string insertSale = @"
-                INSERT INTO sale (sale_id, employee_id, client_id, discount, addition, total_amount, status, sale_date, created_at)
-                VALUES (@SaleId, @EmployeeId, @ClientId, @Discount, @Addition, @TotalAmount, @Status, @SaleDate, @CreatedAt)
+                INSERT INTO sale (sale_id, employee_id, client_id, caixa_id, discount, addition, total_amount, status, sale_date, created_at)
+                VALUES (@SaleId, @EmployeeId, @ClientId, @CaixaId, @Discount, @Addition, @TotalAmount, @Status, @SaleDate, @CreatedAt)
                 RETURNING referencia;
             ";
 

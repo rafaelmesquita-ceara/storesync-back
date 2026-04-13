@@ -3,138 +3,87 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:StoreSyncFront.ViewModels"
-             xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
+             xmlns:dashVm="clr-namespace:StoreSyncFront.ViewModels.Dashboard"
              xmlns:controls1="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
              xmlns:materialIcons="using:Material.Icons.Avalonia"
+             xmlns:local="using:StoreSyncFront.Utils"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="900"
              x:Class="StoreSyncFront.Views.HomeView"
              x:DataType="vm:HomeViewModel">
 
-    <Grid Background="#1d1912">
+    <Grid RowDefinitions="Auto,Auto,*">
 
         <!-- Loading overlay -->
-        <Panel IsVisible="{Binding IsLoading}" ZIndex="100">
+        <Panel IsVisible="{Binding IsLoading}" ZIndex="100" Grid.RowSpan="3">
             <Rectangle Fill="#AA000000"/>
             <ProgressBar IsIndeterminate="True" Width="200"
                          VerticalAlignment="Center" HorizontalAlignment="Center"/>
         </Panel>
 
-        <!-- Boas-vindas e Botão de Recarregar -->
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,12,30,0" ZIndex="10" Spacing="16">
-            <TextBlock Text="{Binding Username, StringFormat='Bem-vindo(a), {0}!'}"
-                       FontSize="18" FontWeight="Bold" Foreground="White" VerticalAlignment="Center">
-                <TextBlock.Effect>
-                    <DropShadowEffect Color="Black" BlurRadius="10" Opacity="0.7"/>
-                </TextBlock.Effect>
-            </TextBlock>
-            
-            <Button Command="{Binding ReloadCommand}" ToolTip.Tip="Recarregar Dashboard (F5)" HotKey="F5" Classes="Outline" BorderBrush="White" Foreground="White" Padding="6" VerticalAlignment="Center">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <materialIcons:MaterialIcon Width="20" Height="20" Kind="Refresh" />
-                    <TextBlock Text="Recarregar" VerticalAlignment="Center"/>
-                </StackPanel>
-            </Button>
-        </StackPanel>
-
-        <!-- Conteúdo do dashboard -->
-        <ScrollViewer HorizontalScrollBarVisibility="Disabled"
-                      VerticalScrollBarVisibility="Auto">
-            <StackPanel Margin="16,44,16,16" Spacing="12">
-
-                <!-- KPI Cards -->
-                <UniformGrid Columns="4">
-                    <controls1:Card Margin="4" Padding="16">
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="Vendas Finalizadas (Mês)" FontSize="12" Opacity="0.7" Foreground="White"/>
-                            <TextBlock Text="{Binding TotalVendasMes}" FontSize="30" FontWeight="Bold" Foreground="White"/>
-                        </StackPanel>
-                    </controls1:Card>
-
-                    <controls1:Card Margin="4" Padding="16">
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="Faturamento do Mês" FontSize="12" Opacity="0.7" Foreground="White"/>
-                            <TextBlock Text="{Binding FaturamentoMes, StringFormat='{}{0:C2}'}" FontSize="24" FontWeight="Bold" Foreground="White"/>
-                        </StackPanel>
-                    </controls1:Card>
-
-                    <controls1:Card Margin="4" Padding="16">
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="A Receber em Aberto" FontSize="12" Opacity="0.7" Foreground="White"/>
-                            <TextBlock Text="{Binding AReceberAberto, StringFormat='{}{0:C2}'}" FontSize="24" FontWeight="Bold" Foreground="#4CAF50"/>
-                        </StackPanel>
-                    </controls1:Card>
-
-                    <controls1:Card Margin="4" Padding="16">
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="A Pagar em Aberto" FontSize="12" Opacity="0.7" Foreground="White"/>
-                            <TextBlock Text="{Binding APagarAberto, StringFormat='{}{0:C2}'}" FontSize="24" FontWeight="Bold" Foreground="#FF5722"/>
-                        </StackPanel>
-                    </controls1:Card>
-                </UniformGrid>
-
-                <!-- Vendas por Dia (Linha) — largura total -->
-                <controls1:Card Margin="4" Padding="16">
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="Vendas por Dia — Últimos 30 dias" FontSize="14" FontWeight="SemiBold" Foreground="White"/>
-                        <lvc:CartesianChart
-                            Height="220"
-                            Series="{Binding VendasPorDiaSeries}"
-                            XAxes="{Binding VendasPorDiaXAxes}"
-                            YAxes="{Binding VendasPorDiaYAxes}"
-                            LegendPosition="Hidden"/>
+        <!-- Barra superior: Boas-vindas + Refresh -->
+        <DockPanel Grid.Row="0" Margin="16,12,16,0">
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" Spacing="16">
+                <TextBlock Text="{Binding Username, StringFormat='Bem-vindo(a), {0}!'}"
+                           FontSize="18" FontWeight="Bold" VerticalAlignment="Center"/>
+                <Button Command="{Binding ReloadCommand}" ToolTip.Tip="Recarregar Dashboard (F5)"
+                        HotKey="F5" Classes="Outline" Padding="6" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <materialIcons:MaterialIcon Width="20" Height="20" Kind="Refresh"/>
+                        <TextBlock Text="Recarregar" VerticalAlignment="Center"/>
                     </StackPanel>
-                </controls1:Card>
-
-                <!-- Financeiro + Vendas por Funcionário lado a lado -->
-                <Grid ColumnDefinitions="*,*">
-                    <controls1:Card Grid.Column="0" Margin="4" Padding="16">
-                        <StackPanel Spacing="8">
-                            <TextBlock Text="Financeiro: A Pagar vs A Receber" FontSize="14" FontWeight="SemiBold" Foreground="White"/>
-                            <lvc:CartesianChart
-                                Height="240"
-                                Series="{Binding FinanceiroPagarReceberSeries}"
-                                XAxes="{Binding FinanceiroPagarReceberXAxes}"
-                                LegendPosition="Bottom"/>
-                        </StackPanel>
-                    </controls1:Card>
-
-                    <controls1:Card Grid.Column="1" Margin="4" Padding="16">
-                        <StackPanel Spacing="8">
-                            <TextBlock Text="Vendas por Funcionário" FontSize="14" FontWeight="SemiBold" Foreground="White"/>
-                            <lvc:CartesianChart
-                                Height="240"
-                                Series="{Binding VendasPorFuncionarioSeries}"
-                                XAxes="{Binding VendasPorFuncionarioXAxes}"
-                                YAxes="{Binding VendasPorFuncionarioYAxes}"
-                                LegendPosition="Hidden"/>
-                        </StackPanel>
-                    </controls1:Card>
-                </Grid>
-
-                <!-- Estoque por Categoria + Status das Contas lado a lado -->
-                <Grid ColumnDefinitions="*,*">
-                    <controls1:Card Grid.Column="0" Margin="4" Padding="16">
-                        <StackPanel Spacing="8">
-                            <TextBlock Text="Estoque por Categoria" FontSize="14" FontWeight="SemiBold" Foreground="White"/>
-                            <lvc:PieChart
-                                Height="240"
-                                Series="{Binding EstoquePorCategoriaSeries}"
-                                LegendPosition="Bottom"/>
-                        </StackPanel>
-                    </controls1:Card>
-
-                    <controls1:Card Grid.Column="1" Margin="4" Padding="16">
-                        <StackPanel Spacing="8">
-                            <TextBlock Text="Status das Contas" FontSize="14" FontWeight="SemiBold" Foreground="White"/>
-                            <lvc:PieChart
-                                Height="240"
-                                Series="{Binding StatusContasSeries}"
-                                LegendPosition="Bottom"/>
-                        </StackPanel>
-                    </controls1:Card>
-                </Grid>
-
+                </Button>
             </StackPanel>
-        </ScrollViewer>
+            <Panel/> <!-- spacer -->
+        </DockPanel>
+
+        <!-- Barra de navegação do carrossel -->
+        <Border Grid.Row="1" Margin="16,12,16,4">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <!-- Seta esquerda -->
+                <Button Grid.Column="0" Command="{Binding PreviousPageCommand}"
+                        Classes="Flat" Padding="8" VerticalAlignment="Center"
+                        ToolTip.Tip="Dashboard anterior">
+                    <materialIcons:MaterialIcon Width="24" Height="24" Kind="ChevronLeft"/>
+                </Button>
+
+                <!-- Botões dos dashboards -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal"
+                            HorizontalAlignment="Center" Spacing="4">
+                    <RadioButton GroupName="DashboardNav"
+                                 IsChecked="{Binding CurrentPageIndex, Converter={x:Static local:IndexToBoolConverter.Instance}, ConverterParameter=0}"
+                                 Command="{Binding GoToPageCommand}" CommandParameter="0"
+                                 Classes="Flat" Padding="16,10" Content="Visão Geral"/>
+                    <RadioButton GroupName="DashboardNav"
+                                 IsChecked="{Binding CurrentPageIndex, Converter={x:Static local:IndexToBoolConverter.Instance}, ConverterParameter=1}"
+                                 Command="{Binding GoToPageCommand}" CommandParameter="1"
+                                 Classes="Flat" Padding="16,10" Content="Financeiro"/>
+                    <RadioButton GroupName="DashboardNav"
+                                 IsChecked="{Binding CurrentPageIndex, Converter={x:Static local:IndexToBoolConverter.Instance}, ConverterParameter=2}"
+                                 Command="{Binding GoToPageCommand}" CommandParameter="2"
+                                 Classes="Flat" Padding="16,10" Content="Vendas"/>
+                    <RadioButton GroupName="DashboardNav"
+                                 IsChecked="{Binding CurrentPageIndex, Converter={x:Static local:IndexToBoolConverter.Instance}, ConverterParameter=3}"
+                                 Command="{Binding GoToPageCommand}" CommandParameter="3"
+                                 Classes="Flat" Padding="16,10" Content="Estoque"/>
+                </StackPanel>
+
+                <!-- Seta direita -->
+                <Button Grid.Column="2" Command="{Binding NextPageCommand}"
+                        Classes="Flat" Padding="8" VerticalAlignment="Center"
+                        ToolTip.Tip="Próximo dashboard">
+                    <materialIcons:MaterialIcon Width="24" Height="24" Kind="ChevronRight"/>
+                </Button>
+            </Grid>
+        </Border>
+
+        <!-- Carousel com as páginas de dashboard -->
+        <Carousel Grid.Row="2"
+                   ItemsSource="{Binding DashboardPages}"
+                   SelectedIndex="{Binding CurrentPageIndex}">
+            <Carousel.PageTransition>
+                <PageSlide Duration="0:0:0.2" Orientation="Horizontal"/>
+            </Carousel.PageTransition>
+        </Carousel>
+
     </Grid>
 </UserControl>

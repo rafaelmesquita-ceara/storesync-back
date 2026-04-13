@@ -139,6 +139,9 @@ public partial class SalesViewModel : ObservableValidator
 
         _allSales = Sales.ToList();
 
+        var previousEmployeeId = SelectedEmployee?.EmployeeId;
+        var previousClientId = SelectedClient?.ClientId;
+
         var employeesPage = await _employeeService.GetAllEmployeesAsync(1000, 0);
         Employees.Clear();
         foreach (var e in employeesPage.Items)
@@ -149,6 +152,11 @@ public partial class SalesViewModel : ObservableValidator
         Clients.Add(new Client { ClientId = Guid.Empty, Name = "(nenhum)" });
         foreach (var c in clientsPage.Items)
             Clients.Add(c);
+
+        if (previousEmployeeId.HasValue)
+            SelectedEmployee = Employees.FirstOrDefault(e => e.EmployeeId == previousEmployeeId.Value);
+        if (previousClientId.HasValue)
+            SelectedClient = Clients.FirstOrDefault(c => c.ClientId == previousClientId.Value);
     }
 
     public Task<SharedModels.Caixa?> GetCaixaAbertoAsync() => _caixaService.GetCaixaAbertoAsync();

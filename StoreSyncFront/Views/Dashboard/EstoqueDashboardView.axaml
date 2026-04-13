@@ -1,0 +1,73 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:StoreSyncFront.ViewModels.Dashboard"
+             xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
+             xmlns:controls1="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="700"
+             x:Class="StoreSyncFront.Views.Dashboard.EstoqueDashboardView"
+             x:DataType="vm:EstoqueDashboardViewModel">
+
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="16,8,16,16" Spacing="12">
+
+            <!-- KPI Cards -->
+            <UniformGrid Columns="4">
+                <controls1:Card Margin="4" Padding="16">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Total de Produtos" FontSize="12" Opacity="0.7"/>
+                        <TextBlock Text="{Binding TotalProdutos}" FontSize="30" FontWeight="Bold"/>
+                    </StackPanel>
+                </controls1:Card>
+
+                <controls1:Card Margin="4" Padding="16">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Produtos sem Estoque" FontSize="12" Opacity="0.7"/>
+                        <TextBlock Text="{Binding ProdutosEstoqueZero}" FontSize="30" FontWeight="Bold" Foreground="#DC2626"/>
+                    </StackPanel>
+                </controls1:Card>
+
+                <controls1:Card Margin="4" Padding="16">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Valor do Estoque (Custo)" FontSize="12" Opacity="0.7"/>
+                        <TextBlock Text="{Binding ValorEstoqueCusto, StringFormat='{}{0:C2}'}" FontSize="24" FontWeight="Bold"/>
+                    </StackPanel>
+                </controls1:Card>
+
+                <controls1:Card Margin="4" Padding="16">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Valor do Estoque (Venda)" FontSize="12" Opacity="0.7"/>
+                        <TextBlock Text="{Binding ValorEstoqueVenda, StringFormat='{}{0:C2}'}" FontSize="24" FontWeight="Bold" Foreground="#16A34A"/>
+                    </StackPanel>
+                </controls1:Card>
+            </UniformGrid>
+
+            <!-- Estoque por Categoria + Top 10 Produtos lado a lado -->
+            <Grid ColumnDefinitions="*,*">
+                <controls1:Card Grid.Column="0" Margin="4" Padding="16">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Estoque por Categoria" FontSize="14" FontWeight="SemiBold"/>
+                        <lvc:PieChart
+                            Height="280"
+                            Series="{Binding EstoquePorCategoriaSeries}"
+                            LegendPosition="Bottom"/>
+                    </StackPanel>
+                </controls1:Card>
+
+                <controls1:Card Grid.Column="1" Margin="4" Padding="16">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Top 10 — Produtos Mais Vendidos (Mês)" FontSize="14" FontWeight="SemiBold"/>
+                        <lvc:CartesianChart
+                            Height="280"
+                            Series="{Binding TopProdutosSeries}"
+                            XAxes="{Binding TopProdutosXAxes}"
+                            YAxes="{Binding TopProdutosYAxes}"
+                            LegendPosition="Hidden"/>
+                    </StackPanel>
+                </controls1:Card>
+            </Grid>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

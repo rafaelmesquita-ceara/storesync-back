@@ -23,6 +23,35 @@ namespace StoreSyncBack.Tests.Unit.Services
             _service = new SalePaymentService(_repoMock.Object, _saleRepoMock.Object, _pmRepoMock.Object);
         }
 
+        #region GetAllSalePaymentsAsync
+
+        [Fact]
+        public async Task GetAllSalePaymentsAsync_Valido_RetornaPaginado()
+        {
+            var payments = new List<SalePayment>
+            {
+                TestData.CreateSalePayment(amount: 100),
+                TestData.CreateSalePayment(amount: 200)
+            };
+            var expected = new PaginatedResult<SalePayment>
+            {
+                Items = payments,
+                TotalCount = 2,
+                Limit = 50,
+                Offset = 0
+            };
+
+            _repoMock.Setup(r => r.GetAllSalePaymentsAsync(50, 0)).ReturnsAsync(expected);
+
+            var result = await _service.GetAllSalePaymentsAsync(50, 0);
+
+            result.Items.Should().HaveCount(2);
+            result.TotalCount.Should().Be(2);
+            _repoMock.Verify(r => r.GetAllSalePaymentsAsync(50, 0), Times.Once);
+        }
+
+        #endregion
+
         #region AddPaymentAsync
 
         [Fact]

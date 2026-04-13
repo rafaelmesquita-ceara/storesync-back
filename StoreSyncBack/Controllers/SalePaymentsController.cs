@@ -17,6 +17,13 @@ namespace StoreSyncBack.Controllers
             _logger = logger;
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetAll([FromQuery] int limit = 50, [FromQuery] int offset = 0)
+        {
+            var result = await _service.GetAllSalePaymentsAsync(limit, offset);
+            return Ok(result);
+        }
+
         [HttpGet("by-sale/{saleId:guid}")]
         public async Task<IActionResult> GetBySaleId(Guid saleId)
         {

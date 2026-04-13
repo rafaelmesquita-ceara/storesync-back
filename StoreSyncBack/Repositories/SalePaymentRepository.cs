@@ -14,6 +14,53 @@ namespace StoreSyncBack.Repositories
             _db = db;
         }
 
+        public async Task<PaginatedResult<SalePayment>> GetAllSalePaymentsAsync(int limit = 50, int offset = 0)
+        {
+            var countSql = "SELECT COUNT(*) FROM sale_payment;";
+            var totalCount = await _db.ExecuteScalarAsync<int>(countSql);
+
+            var sql = @"
+                SELECT
+                    sp.sale_payment_id   AS SalePaymentId,
+                    sp.sale_id           AS SaleId,
+                    sp.payment_method_id AS PaymentMethodId,
+                    sp.amount            AS Amount,
+                    sp.installments      AS Installments,
+                    sp.surcharge_applied AS SurchargeApplied,
+                    sp.surcharge_amount  AS SurchargeAmount,
+                    sp.created_at        AS CreatedAt,
+                    pm.name              AS Name,
+                    pm.payment_method_id AS PaymentMethodId,
+                    pm.type              AS Type,
+                    pm.status            AS Status,
+                    pm.created_at        AS CreatedAt,
+                    pm.updated_at        AS UpdatedAt
+                FROM sale_payment sp
+                JOIN payment_method pm ON sp.payment_method_id = pm.payment_method_id
+                ORDER BY sp.created_at DESC
+                LIMIT @Limit OFFSET @Offset;
+            ";
+
+            var payments = await _db.QueryAsync<SalePayment, PaymentMethod, SalePayment>(
+                sql,
+                (payment, pm) =>
+                {
+                    payment.PaymentMethod = pm;
+                    return payment;
+                },
+                new { Limit = limit, Offset = offset },
+                splitOn: "Name"
+            );
+
+            return new PaginatedResult<SalePayment>
+            {
+                Items = payments,
+                TotalCount = totalCount,
+                Limit = limit,
+                Offset = offset
+            };
+        }
+
         public async Task<IEnumerable<SalePayment>> GetBySaleIdAsync(Guid saleId)
         {
             var sql = @"

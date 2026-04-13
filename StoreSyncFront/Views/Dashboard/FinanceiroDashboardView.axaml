@@ -1,0 +1,72 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:StoreSyncFront.ViewModels.Dashboard"
+             xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
+             xmlns:controls1="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="700"
+             x:Class="StoreSyncFront.Views.Dashboard.FinanceiroDashboardView"
+             x:DataType="vm:FinanceiroDashboardViewModel">
+
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="16,8,16,16" Spacing="12">
+
+            <!-- KPI Cards -->
+            <UniformGrid Columns="4">
+                <controls1:Card Margin="4" Padding="16">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Contas Vencidas (A Pagar)" FontSize="12" Opacity="0.7"/>
+                        <TextBlock Text="{Binding ContasVencidasPagar}" FontSize="30" FontWeight="Bold" Foreground="#DC2626"/>
+                    </StackPanel>
+                </controls1:Card>
+
+                <controls1:Card Margin="4" Padding="16">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Contas Vencidas (A Receber)" FontSize="12" Opacity="0.7"/>
+                        <TextBlock Text="{Binding ContasVencidasReceber}" FontSize="30" FontWeight="Bold" Foreground="#D97706"/>
+                    </StackPanel>
+                </controls1:Card>
+
+                <controls1:Card Margin="4" Padding="16">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Liquidado no Mês (Pagar)" FontSize="12" Opacity="0.7"/>
+                        <TextBlock Text="{Binding TotalLiquidadoMesPagar, StringFormat='{}{0:C2}'}" FontSize="24" FontWeight="Bold" Foreground="#DC2626"/>
+                    </StackPanel>
+                </controls1:Card>
+
+                <controls1:Card Margin="4" Padding="16">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Liquidado no Mês (Receber)" FontSize="12" Opacity="0.7"/>
+                        <TextBlock Text="{Binding TotalLiquidadoMesReceber, StringFormat='{}{0:C2}'}" FontSize="24" FontWeight="Bold" Foreground="#16A34A"/>
+                    </StackPanel>
+                </controls1:Card>
+            </UniformGrid>
+
+            <!-- Financeiro A Pagar vs A Receber + Status das Contas lado a lado -->
+            <Grid ColumnDefinitions="*,*">
+                <controls1:Card Grid.Column="0" Margin="4" Padding="16">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Financeiro: A Pagar vs A Receber" FontSize="14" FontWeight="SemiBold"/>
+                        <lvc:CartesianChart
+                            Height="280"
+                            Series="{Binding FinanceiroPagarReceberSeries}"
+                            XAxes="{Binding FinanceiroPagarReceberXAxes}"
+                            LegendPosition="Bottom"/>
+                    </StackPanel>
+                </controls1:Card>
+
+                <controls1:Card Grid.Column="1" Margin="4" Padding="16">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Status das Contas" FontSize="14" FontWeight="SemiBold"/>
+                        <lvc:PieChart
+                            Height="280"
+                            Series="{Binding StatusContasSeries}"
+                            LegendPosition="Bottom"/>
+                    </StackPanel>
+                </controls1:Card>
+            </Grid>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

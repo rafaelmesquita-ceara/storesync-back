@@ -19,6 +19,11 @@ namespace StoreSyncBack.Services
             _pmRepo = pmRepo;
         }
 
+        public Task<PaginatedResult<SalePayment>> GetAllSalePaymentsAsync(int limit = 50, int offset = 0)
+        {
+            return _repo.GetAllSalePaymentsAsync(limit, offset);
+        }
+
         public Task<IEnumerable<SalePayment>> GetBySaleIdAsync(Guid saleId)
         {
             return _repo.GetBySaleIdAsync(saleId);

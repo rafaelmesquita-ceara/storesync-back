@@ -4,11 +4,13 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Avalonia;
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using StoreSyncFront.Services;
 using StoreSyncFront.Views;
 using CommunityToolkit.Mvvm.Input;
+using Material.Styles.Themes;
 using ReactiveUI;
 using SharedModels;
 using SharedModels.Interfaces;
@@ -34,12 +36,15 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     private string _username = string.Empty;
-    
+
     [ObservableProperty]
     private ObservableCollection<TabItemViewModel> _tabs = new();
-    
+
     [ObservableProperty]
     private TabItemViewModel? _selectedTab;
+
+    [ObservableProperty]
+    private bool _isDarkTheme = true;
     
     public MainViewModel(INavigationService navigationService, IAuthService authService, IProductService productService, ICategoryService categoryService, IEmployeeService employeeService, IFinanceService financeService, ISaleService saleService, ISaleItemService saleItemService, ICommissionService commissionService, IClientService clientService, IPaymentMethodService paymentMethodService, ISalePaymentService salePaymentService, StoreSyncFront.Services.CaixaService caixaService)
     {
@@ -70,13 +75,27 @@ public partial class MainViewModel : ObservableObject
         }
 
         // Criar e adicionar a aba inicial (Home)
-        var homeVm = new HomeViewModel(Username, _saleService, _financeService, _productService, _categoryService, _employeeService);
+        var homeVm = new HomeViewModel(Username, _saleService, _financeService, _productService, _categoryService, _employeeService, _saleItemService, _paymentMethodService, _salePaymentService);
         var homeTab = new TabItemViewModel("Início", homeVm, false, CloseTab);
         Tabs.Add(homeTab);
         SelectedTab = homeTab;
         _ = homeVm.LoadDataAsync();
     }
     
+    partial void OnIsDarkThemeChanged(bool value)
+    {
+        var materialTheme = Application.Current!.Styles
+            .OfType<MaterialTheme>()
+            .FirstOrDefault();
+
+        if (materialTheme != null)
+        {
+            materialTheme.BaseTheme = value
+                ? Material.Styles.Themes.Base.BaseThemeMode.Dark
+                : Material.Styles.Themes.Base.BaseThemeMode.Light;
+        }
+    }
+
     [RelayCommand]
     private void Logout()
     {

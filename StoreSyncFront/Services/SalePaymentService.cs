@@ -11,6 +11,16 @@ namespace StoreSyncFront.Services;
 
 public class SalePaymentService(IApiService apiService) : ISalePaymentService
 {
+    public async Task<PaginatedResult<SalePayment>> GetAllSalePaymentsAsync(int limit = 50, int offset = 0)
+    {
+        Response response = await apiService.GetAsync($"/api/SalePayments?limit={limit}&offset={offset}");
+        if (response.IsSuccess())
+            return JsonConvert.DeserializeObject<PaginatedResult<SalePayment>>(response.Body) ?? new PaginatedResult<SalePayment>();
+
+        SnackBarService.SendError("Erro ao buscar pagamentos: " + response.Body);
+        return new PaginatedResult<SalePayment>();
+    }
+
     public async Task<IEnumerable<SalePayment>> GetBySaleIdAsync(Guid saleId)
     {
         Response response = await apiService.GetAsync($"/api/SalePayments/by-sale/{saleId}");

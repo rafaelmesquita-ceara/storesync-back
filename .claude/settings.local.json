@@ -10,7 +10,19 @@
       "Bash(dotnet test:*)",
       "Bash(xargs grep:*)",
       "Bash(git add:*)",
-      "Bash(grep -E \"\\\\.cs$\")"
+      "Bash(grep -E \"\\\\.cs$\")",
+      "Bash(grep -E \"\\\\.sql$\")",
+      "Bash(grep -E \"\\\\.\\(axaml|cs\\)$\")",
+      "Bash(grep -E \"\\\\.\\(axaml|cs|xaml\\)$\")",
+      "Bash(ls -la /c/Users/Rafael/Downloads/CLAUDINHO/StoreSyncFront/Views/*.axaml)",
+      "Bash(ls -la /c/Users/Rafael/Downloads/CLAUDINHO/StoreSyncFront/ViewModels/*.cs)",
+      "Bash(dotnet-dump analyze:*)",
+      "Bash(dotnet tool:*)",
+      "Bash(grep -n \"public.*Task\" /c/Users/Rafael/Downloads/CLAUDINHO/StoreSyncBack/Repositories/*.cs)",
+      "Bash(git checkout:*)",
+      "Bash(git commit -m ':*)",
+      "Bash(git push:*)",
+      "Bash(git merge:*)"
     ]
   }
 }

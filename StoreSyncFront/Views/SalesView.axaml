@@ -151,6 +151,14 @@
                                     Header="Valor Total (R$)" />
                                 <DataGridTextColumn
                                     Width="1.5*"
+                                    Binding="{Binding GrossProfitSnapshot, StringFormat='{}{0:N2}'}"
+                                    Header="Lucro Bruto (R$)" />
+                                <DataGridTextColumn
+                                    Width="1*"
+                                    Binding="{Binding MarginPercentSnapshot, StringFormat='{}{0:N1}%'}"
+                                    Header="Margem %" />
+                                <DataGridTextColumn
+                                    Width="1.5*"
                                     Binding="{Binding StatusLabel}"
                                     Header="Situação" />
                                 <DataGridTemplateColumn Header="Ações">
@@ -287,6 +295,9 @@
                                     <DataGridTextColumn Width="1*" Binding="{Binding Discount, StringFormat='{}{0:N2}'}" Header="Desc. (R$)" />
                                     <DataGridTextColumn Width="1*" Binding="{Binding Addition, StringFormat='{}{0:N2}'}" Header="Acrés. (R$)" />
                                     <DataGridTextColumn Width="1.2*" Binding="{Binding TotalPrice, StringFormat='{}{0:N2}'}" Header="Total (R$)" />
+                                    <DataGridTextColumn Width="1.2*" Binding="{Binding TotalCost, StringFormat='{}{0:N2}'}" Header="Custo (R$)" />
+                                    <DataGridTextColumn Width="1.2*" Binding="{Binding GrossProfit, StringFormat='{}{0:N2}'}" Header="Margem (R$)" />
+                                    <DataGridTextColumn Width="1*" Binding="{Binding MarginPercent, StringFormat='{}{0:N1}%'}" Header="Margem %" />
                                 </DataGrid.Columns>
                             </DataGrid>
 
@@ -354,6 +365,22 @@
 
                             <!-- Totais -->
                             <StackPanel HorizontalAlignment="Right" Spacing="4">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock VerticalAlignment="Center" Classes="Body1" Text="Custo Total:" />
+                                    <TextBlock VerticalAlignment="Center" Classes="Body1"
+                                               Text="{Binding TotalCost, StringFormat='R$ {0:N2}'}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock VerticalAlignment="Center" Classes="Body1" Text="Lucro Bruto:" />
+                                    <TextBlock VerticalAlignment="Center" Classes="Body1" Foreground="DarkGreen"
+                                               FontWeight="SemiBold"
+                                               Text="{Binding GrossProfit, StringFormat='R$ {0:N2}'}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock VerticalAlignment="Center" Classes="Body1" Text="Margem:" />
+                                    <TextBlock VerticalAlignment="Center" Classes="Body1"
+                                               Text="{Binding MarginPercent, StringFormat='{}{0:N1}%'}" />
+                                </StackPanel>
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <TextBlock VerticalAlignment="Center" Classes="Body1" Text="Total Pago:" />
                                     <TextBlock VerticalAlignment="Center" Classes="Body1"

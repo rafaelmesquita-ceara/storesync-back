@@ -26,6 +26,15 @@ public class Sale
     public List<SaleItem>? Items { get; set; }
     public List<SalePayment>? Payments { get; set; }
 
+    public decimal TotalCostSnapshot { get; set; }
+
+    public decimal TotalCost => Items?.Sum(i => i.TotalCost) ?? 0m;
+    public decimal GrossProfit => TotalAmount - TotalCost;
+    public decimal MarginPercent => TotalAmount == 0 ? 0m : GrossProfit / TotalAmount * 100;
+
+    public decimal GrossProfitSnapshot => TotalAmount - TotalCostSnapshot;
+    public decimal MarginPercentSnapshot => TotalAmount == 0 ? 0m : GrossProfitSnapshot / TotalAmount * 100;
+
     public string StatusLabel => Status switch
     {
         SaleStatus.Aberta => "Aberta",

@@ -17,6 +17,10 @@ public partial class SaleItemViewModel : ObservableObject
     [ObservableProperty] private decimal addition;
     [ObservableProperty] private decimal totalPrice;
     [ObservableProperty] private int stockQuantity;
+    [ObservableProperty] private decimal costPrice;
+    [ObservableProperty] private decimal totalCost;
+    [ObservableProperty] private decimal grossProfit;
+    [ObservableProperty] private decimal marginPercent;
 
     public SaleItemViewModel(SaleItem item)
     {
@@ -33,5 +37,9 @@ public partial class SaleItemViewModel : ObservableObject
         Addition = item.Addition;
         TotalPrice = item.TotalPrice;
         StockQuantity = item.Product?.StockQuantity ?? 0;
+        CostPrice = item.CostPrice;
+        TotalCost = item.TotalCost;
+        GrossProfit = item.GrossProfit;
+        MarginPercent = item.MarginPercent;
     }
 }

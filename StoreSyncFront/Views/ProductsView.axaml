@@ -112,8 +112,12 @@
                                     Header="Estoque" />
                                 <DataGridTextColumn
                                     Width="2*"
-                                    Binding="{Binding Price}"
-                                    Header="Preço" />
+                                    Binding="{Binding Price, StringFormat='{}{0:N2}'}"
+                                    Header="Preço (R$)" />
+                                <DataGridTextColumn
+                                    Width="2*"
+                                    Binding="{Binding CostPrice, StringFormat='{}{0:N2}'}"
+                                    Header="Custo (R$)" />
                                 <DataGridTextColumn
                                     Width="2*"
                                     Binding="{Binding Category.Name}"
@@ -191,6 +195,11 @@
                             p1:TextFieldAssist.Hints="{Binding (DataValidationErrors.Errors)}"
                             p1:TextFieldAssist.Label="Preço"
                             Text="{Binding Price}"
+                            UseFloatingWatermark="True" />
+                        <TextBox
+                            p1:TextFieldAssist.Hints="{Binding (DataValidationErrors.Errors)}"
+                            p1:TextFieldAssist.Label="Preço de Custo"
+                            Text="{Binding CostPrice}"
                             UseFloatingWatermark="True" />
 
                         <Grid ColumnDefinitions="*, Auto">

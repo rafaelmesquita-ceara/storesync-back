@@ -11,6 +11,7 @@ public partial class ProductViewModel : ObservableObject
     [ObservableProperty] private string name;
     [ObservableProperty] private int stockQuantity;
     [ObservableProperty] private decimal price;
+    [ObservableProperty] private decimal costPrice;
     [ObservableProperty] private Category category;
     [ObservableProperty] private DateTime createdAt;
 
@@ -23,6 +24,7 @@ public partial class ProductViewModel : ObservableObject
         Name = product.Name;
         StockQuantity = product.StockQuantity;
         Price = product.Price;
+        CostPrice = product.CostPrice;
         Category = product.Category;
         CreatedAt = product.CreatedAt;
     }
@@ -33,6 +35,7 @@ public partial class ProductViewModel : ObservableObject
         Model.Name = Name;
         Model.StockQuantity = StockQuantity;
         Model.Price = Price;
+        Model.CostPrice = CostPrice;
         Model.Category = Category;
         Model.CreatedAt = CreatedAt;
     }

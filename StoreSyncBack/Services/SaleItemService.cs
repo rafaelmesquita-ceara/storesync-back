@@ -57,6 +57,7 @@ namespace StoreSyncBack.Services
             if (saleItem.Quantity > product.StockQuantity)
                 throw new InvalidOperationException($"Estoque insuficiente. Disponível: {product.StockQuantity}.");
 
+            saleItem.CostPrice = product.CostPrice;
             saleItem.TotalPrice = (saleItem.Quantity * product.Price) - saleItem.Discount + saleItem.Addition;
 
             if (saleItem.SaleItemId == Guid.Empty)

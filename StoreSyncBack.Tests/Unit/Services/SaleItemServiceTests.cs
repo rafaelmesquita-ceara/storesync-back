@@ -107,6 +107,48 @@ namespace StoreSyncBack.Tests.Unit.Services
 
         #endregion
 
+        #region CostPrice snapshot
+
+        [Fact]
+        public async Task CreateSaleItemAsync_ProdutoComCostPrice_SnapshotCopiadoParaItem()
+        {
+            var sale = TestData.CreateSale(status: SaleStatus.Aberta);
+            var product = TestData.CreateProduct(price: 100m, stock: 10, costPrice: 40m);
+            var saleItem = TestData.CreateSaleItem(quantity: 2);
+            saleItem.SaleId = sale.SaleId;
+            saleItem.ProductId = product.ProductId;
+
+            _saleRepoMock.Setup(r => r.GetSaleByIdAsync(sale.SaleId)).ReturnsAsync(sale);
+            _productRepoMock.Setup(r => r.GetProductByIdAsync(product.ProductId)).ReturnsAsync(product);
+            _repoMock.Setup(r => r.CreateSaleItemAsync(It.IsAny<SaleItem>())).ReturnsAsync(1);
+
+            await _service.CreateSaleItemAsync(saleItem);
+
+            _repoMock.Verify(r => r.CreateSaleItemAsync(It.Is<SaleItem>(si =>
+                si.CostPrice == 40m)), Times.Once);
+        }
+
+        [Fact]
+        public async Task CreateSaleItemAsync_ProdutoSemCostPrice_SnapshotEhZero()
+        {
+            var sale = TestData.CreateSale(status: SaleStatus.Aberta);
+            var product = TestData.CreateProduct(price: 100m, stock: 10, costPrice: 0m);
+            var saleItem = TestData.CreateSaleItem(quantity: 1);
+            saleItem.SaleId = sale.SaleId;
+            saleItem.ProductId = product.ProductId;
+
+            _saleRepoMock.Setup(r => r.GetSaleByIdAsync(sale.SaleId)).ReturnsAsync(sale);
+            _productRepoMock.Setup(r => r.GetProductByIdAsync(product.ProductId)).ReturnsAsync(product);
+            _repoMock.Setup(r => r.CreateSaleItemAsync(It.IsAny<SaleItem>())).ReturnsAsync(1);
+
+            await _service.CreateSaleItemAsync(saleItem);
+
+            _repoMock.Verify(r => r.CreateSaleItemAsync(It.Is<SaleItem>(si =>
+                si.CostPrice == 0m)), Times.Once);
+        }
+
+        #endregion
+
         #region DeleteSaleItemAsync
 
         [Fact]

@@ -82,15 +82,18 @@ namespace StoreSyncBack.Tests.Fixtures
             .RuleFor(p => p.Name, f => f.Commerce.ProductName())
             .RuleFor(p => p.CategoryId, f => Guid.NewGuid())
             .RuleFor(p => p.Price, f => f.Random.Decimal(10, 1000))
+            .RuleFor(p => p.CostPrice, f => f.Random.Decimal(1, 500))
             .RuleFor(p => p.StockQuantity, f => f.Random.Int(0, 100));
 
-        public static Product CreateProduct(decimal? price = null, int? stock = null)
+        public static Product CreateProduct(decimal? price = null, int? stock = null, decimal? costPrice = null)
         {
             var product = ProductFaker.Generate();
             if (price.HasValue)
                 product.Price = price.Value;
             if (stock.HasValue)
                 product.StockQuantity = stock.Value;
+            if (costPrice.HasValue)
+                product.CostPrice = costPrice.Value;
             return product;
         }
 
@@ -134,13 +137,16 @@ namespace StoreSyncBack.Tests.Fixtures
             .RuleFor(si => si.Quantity, f => f.Random.Int(1, 10))
             .RuleFor(si => si.Discount, _ => 0)
             .RuleFor(si => si.Addition, _ => 0)
-            .RuleFor(si => si.TotalPrice, f => f.Random.Decimal(10, 500));
+            .RuleFor(si => si.TotalPrice, f => f.Random.Decimal(10, 500))
+            .RuleFor(si => si.CostPrice, f => f.Random.Decimal(1, 200));
 
-        public static SaleItem CreateSaleItem(int? quantity = null)
+        public static SaleItem CreateSaleItem(int? quantity = null, decimal? costPrice = null)
         {
             var item = SaleItemFaker.Generate();
             if (quantity.HasValue)
                 item.Quantity = quantity.Value;
+            if (costPrice.HasValue)
+                item.CostPrice = costPrice.Value;
             return item;
         }
 

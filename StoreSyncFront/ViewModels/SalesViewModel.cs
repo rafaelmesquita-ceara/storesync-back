@@ -110,6 +110,9 @@ public partial class SalesViewModel : ObservableValidator
         {
             OnPropertyChanged(nameof(CanFinalize));
             OnPropertyChanged(nameof(CanCancel));
+            OnPropertyChanged(nameof(TotalCost));
+            OnPropertyChanged(nameof(GrossProfit));
+            OnPropertyChanged(nameof(MarginPercent));
         };
 
         Payments.CollectionChanged += (_, _) =>
@@ -504,6 +507,10 @@ public partial class SalesViewModel : ObservableValidator
         OnPropertyChanged(nameof(CanFinalize));
     }
 
+    public decimal TotalCost    => SaleItems.Sum(i => i.TotalCost);
+    public decimal GrossProfit  => TotalAmount - TotalCost;
+    public decimal MarginPercent => TotalAmount == 0 ? 0m : GrossProfit / TotalAmount * 100;
+
     public bool CanFinalize => SelectedStatus == SaleStatus.Aberta
         && SaleItems.Count > 0
         && TotalPaid >= TotalAmount
@@ -517,6 +524,12 @@ public partial class SalesViewModel : ObservableValidator
         {
             OnPropertyChanged(nameof(CanFinalize));
             OnPropertyChanged(nameof(CanCancel));
+        }
+        if (e.PropertyName is nameof(TotalAmount))
+        {
+            OnPropertyChanged(nameof(TotalCost));
+            OnPropertyChanged(nameof(GrossProfit));
+            OnPropertyChanged(nameof(MarginPercent));
         }
     }
 

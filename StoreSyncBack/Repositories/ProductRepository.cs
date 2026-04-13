@@ -26,6 +26,7 @@ namespace StoreSyncBack.Repositories
                     p.name AS Name,
                     p.category_id AS CategoryId,
                     p.price AS Price,
+                    p.cost_price AS CostPrice,
                     p.stock_quantity AS StockQuantity,
                     p.created_at AS CreatedAt,
                     TRUE AS _splitCategory,
@@ -102,8 +103,8 @@ namespace StoreSyncBack.Repositories
                 product.CreatedAt = BrazilDateTime.Now;
 
             var sql = @"
-                INSERT INTO product (product_id, reference, name, category_id, price, stock_quantity, created_at)
-                VALUES (@ProductId, @Reference, @Name, @CategoryId, @Price, @StockQuantity, @CreatedAt);
+                INSERT INTO product (product_id, reference, name, category_id, price, cost_price, stock_quantity, created_at)
+                VALUES (@ProductId, @Reference, @Name, @CategoryId, @Price, @CostPrice, @StockQuantity, @CreatedAt);
             ";
 
             var affected = await _db.ExecuteAsync(sql, new
@@ -113,6 +114,7 @@ namespace StoreSyncBack.Repositories
                 product.Name,
                 CategoryId = product.CategoryId,
                 product.Price,
+                product.CostPrice,
                 product.StockQuantity,
                 product.CreatedAt
             });
@@ -129,6 +131,7 @@ namespace StoreSyncBack.Repositories
                     name = @Name,
                     category_id = @CategoryId,
                     price = @Price,
+                    cost_price = @CostPrice,
                     stock_quantity = @StockQuantity
                 WHERE product_id = @ProductId;
             ";
@@ -139,6 +142,7 @@ namespace StoreSyncBack.Repositories
                 product.Name,
                 CategoryId = product.CategoryId,
                 product.Price,
+                product.CostPrice,
                 product.StockQuantity,
                 product.ProductId
             });

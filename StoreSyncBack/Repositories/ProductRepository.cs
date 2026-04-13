@@ -69,6 +69,7 @@ namespace StoreSyncBack.Repositories
                     p.name AS Name,
                     p.category_id AS CategoryId,
                     p.price AS Price,
+                    p.cost_price AS CostPrice,
                     p.stock_quantity AS StockQuantity,
                     p.created_at AS CreatedAt,
                     TRUE AS _splitCategory,

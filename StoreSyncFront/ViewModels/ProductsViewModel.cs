@@ -74,6 +74,11 @@ public partial class ProductsViewModel : ObservableValidator
     [RegularExpression(@"^\d+([,.]\d{1,2})?$", ErrorMessage = "O campo aceita apenas valores numéricos.")]
     private string _price = string.Empty;
 
+    [ObservableProperty]
+    [Required(ErrorMessage = "O campo Preço de Custo é obrigatório.")]
+    [RegularExpression(@"^\d+([,.]\d{1,2})?$", ErrorMessage = "O campo aceita apenas valores numéricos.")]
+    private string _costPrice = string.Empty;
+
     [ObservableProperty] private Category? _selectedCategory;
 
 
@@ -131,6 +136,7 @@ public partial class ProductsViewModel : ObservableValidator
 
         int.TryParse(StockQuantity, out int stock);
         decimal.TryParse(Price.Replace(',', '.'), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal priceValue);
+        decimal.TryParse(CostPrice.Replace(',', '.'), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal costPriceValue);
 
         Product newProductModel = new Product
         {
@@ -138,6 +144,7 @@ public partial class ProductsViewModel : ObservableValidator
             Name = Name,
             StockQuantity = stock,
             Price = priceValue,
+            CostPrice = costPriceValue,
             Category = SelectedCategory,
             CategoryId = SelectedCategory?.CategoryId ?? null
         };
@@ -168,6 +175,7 @@ public partial class ProductsViewModel : ObservableValidator
         ProductId = productVm.ProductId;
         Name = productVm.Name ?? string.Empty;
         Price = productVm.Price.ToString(System.Globalization.CultureInfo.CurrentCulture);
+        CostPrice = productVm.CostPrice.ToString(System.Globalization.CultureInfo.CurrentCulture);
         Reference = productVm.Reference ?? string.Empty;
         StockQuantity = productVm.StockQuantity.ToString();
         SelectedCategory = productVm.Category;
@@ -190,6 +198,7 @@ public partial class ProductsViewModel : ObservableValidator
         ProductId = Guid.Empty;
         Name = string.Empty;
         Price = string.Empty;
+        CostPrice = string.Empty;
         Reference = string.Empty;
         StockQuantity = string.Empty;
         SelectedCategory = null;

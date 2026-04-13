@@ -20,6 +20,10 @@ public partial class SaleViewModel : ObservableObject
     [ObservableProperty] private DateTime saleDate;
     [ObservableProperty] private DateTime createdAt;
 
+    public decimal TotalCostSnapshot    => Model.TotalCostSnapshot;
+    public decimal GrossProfitSnapshot  => Model.GrossProfitSnapshot;
+    public decimal MarginPercentSnapshot => Model.MarginPercentSnapshot;
+
     public string StatusLabel => Status switch
     {
         SaleStatus.Finalizada => "Finalizada",

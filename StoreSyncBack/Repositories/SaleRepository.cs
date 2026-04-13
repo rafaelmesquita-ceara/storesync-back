@@ -33,6 +33,8 @@ namespace StoreSyncBack.Repositories
                     s.status AS Status,
                     s.sale_date AS SaleDate,
                     s.created_at AS CreatedAt,
+                    COALESCE((SELECT SUM(si.cost_price * si.quantity)
+                               FROM sale_item si WHERE si.sale_id = s.sale_id), 0) AS TotalCostSnapshot,
                     e.name AS Name,
                     e.employee_id AS EmployeeId,
                     e.cpf AS Cpf,
@@ -116,12 +118,14 @@ namespace StoreSyncBack.Repositories
                     si.discount AS Discount,
                     si.addition AS Addition,
                     si.total_price AS TotalPrice,
+                    si.cost_price AS CostPrice,
                     si.created_at AS CreatedAt,
                     p.reference AS Reference,
                     p.product_id AS ProductId,
                     p.name AS Name,
                     p.category_id AS CategoryId,
                     p.price AS Price,
+                    p.cost_price AS CostPrice,
                     p.stock_quantity AS StockQuantity,
                     p.created_at AS CreatedAt
                 FROM sale_item si

@@ -33,6 +33,9 @@ namespace StoreSyncBack.Services
             if (product.Price < 0)
                 throw new ArgumentException("Price não pode ser negativo.", nameof(product.Price));
 
+            if (product.CostPrice < 0)
+                throw new ArgumentException("CostPrice não pode ser negativo.", nameof(product.CostPrice));
+
             if (product.StockQuantity < 0)
                 throw new ArgumentException("StockQuantity não pode ser negativo.", nameof(product.StockQuantity));
 
@@ -58,6 +61,9 @@ namespace StoreSyncBack.Services
 
             if (product.Price < 0)
                 throw new ArgumentException("Price não pode ser negativo.", nameof(product.Price));
+
+            if (product.CostPrice < 0)
+                throw new ArgumentException("CostPrice não pode ser negativo.", nameof(product.CostPrice));
 
             if (product.StockQuantity < 0)
                 throw new ArgumentException("StockQuantity não pode ser negativo.", nameof(product.StockQuantity));

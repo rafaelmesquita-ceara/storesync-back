@@ -11,5 +11,10 @@ public class SaleItem
     public decimal Discount { get; set; }
     public decimal Addition { get; set; }
     public decimal TotalPrice { get; set; }
+    public decimal CostPrice { get; set; }
     public DateTime CreatedAt { get; set; }
+
+    public decimal TotalCost => Quantity * CostPrice;
+    public decimal GrossProfit => TotalPrice - TotalCost;
+    public decimal MarginPercent => TotalPrice == 0 ? 0m : GrossProfit / TotalPrice * 100;
 }

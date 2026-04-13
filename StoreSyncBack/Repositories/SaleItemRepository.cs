@@ -28,6 +28,7 @@ namespace StoreSyncBack.Repositories
                     si.discount AS Discount,
                     si.addition AS Addition,
                     si.total_price AS TotalPrice,
+                    si.cost_price AS CostPrice,
                     si.created_at AS CreatedAt,
                     p.reference AS Reference,
                     p.product_id AS ProductId,
@@ -76,6 +77,7 @@ namespace StoreSyncBack.Repositories
                     si.discount AS Discount,
                     si.addition AS Addition,
                     si.total_price AS TotalPrice,
+                    si.cost_price AS CostPrice,
                     si.created_at AS CreatedAt,
                     p.reference AS Reference,
                     p.product_id AS ProductId,
@@ -122,6 +124,7 @@ namespace StoreSyncBack.Repositories
                     si.discount AS Discount,
                     si.addition AS Addition,
                     si.total_price AS TotalPrice,
+                    si.cost_price AS CostPrice,
                     si.created_at AS CreatedAt,
                     p.reference AS Reference,
                     p.product_id AS ProductId,
@@ -162,8 +165,8 @@ namespace StoreSyncBack.Repositories
                                       - saleItem.Discount + saleItem.Addition;
 
             var sql = @"
-                INSERT INTO sale_item (sale_item_id, sale_id, product_id, quantity, discount, addition, total_price, created_at)
-                VALUES (@SaleItemId, @SaleId, @ProductId, @Quantity, @Discount, @Addition, @TotalPrice, @CreatedAt);
+                INSERT INTO sale_item (sale_item_id, sale_id, product_id, quantity, discount, addition, total_price, cost_price, created_at)
+                VALUES (@SaleItemId, @SaleId, @ProductId, @Quantity, @Discount, @Addition, @TotalPrice, @CostPrice, @CreatedAt);
             ";
 
             var affected = await _db.ExecuteAsync(sql, new
@@ -175,6 +178,7 @@ namespace StoreSyncBack.Repositories
                 saleItem.Discount,
                 saleItem.Addition,
                 saleItem.TotalPrice,
+                saleItem.CostPrice,
                 saleItem.CreatedAt
             });
 

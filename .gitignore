@@ -53,6 +53,11 @@ ScaffoldingReadMe.txt
 # Configuration files
 appsettings.Local.json
 appsettings.*.Local.json
+appsettings.Production.json
+
+# Deploy output
+deploy/dist/
+deploy/backups/
 
 # Secrets
 credentials.json

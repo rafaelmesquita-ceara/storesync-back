@@ -203,8 +203,7 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    // Swagger desabilitado em producao
 }
 
 app.UseHttpsRedirection();
